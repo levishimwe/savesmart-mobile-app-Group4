@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "267770869749",
+    "project_id": "flutter-smart-save",
+    "storage_bucket": "flutter-smart-save.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267770869749:android:4899f67b54e2e762a712bc",
+        "android_client_info": {
+          "package_name": "com.example.savesmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYRzSXIH2ndSdEqRCp6_MfiPRS0tM0Od4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
