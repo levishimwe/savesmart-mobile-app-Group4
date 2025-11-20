@@ -29,6 +29,7 @@ class AppConstants {
   static const String goalsCollection = 'goals';
   static const String transactionsCollection = 'transactions';
   static const String tipsCollection = 'tips';
+  static const String savingsCollection = 'savings';
 
   // SharedPreferences keys
   static const String themeKey = 'theme_mode';

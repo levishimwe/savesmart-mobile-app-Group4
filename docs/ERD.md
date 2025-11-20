@@ -100,6 +100,7 @@ Stores financial transactions (deposits and expenses).
 | date | Timestamp | Yes | Transaction date |
 | goalId | String | No | Foreign Key → goals.id (optional) |
 
+
 ### Indexes:
 - `id` (Primary Key)
 - `userId` (Foreign Key, indexed for queries)

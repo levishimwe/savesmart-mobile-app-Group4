@@ -3,6 +3,7 @@ import 'package:savesmart/core/utils/constants.dart';
 import 'package:savesmart/features/goals/presentation/pages/goals_page.dart';
 import 'package:savesmart/features/home/presentation/pages/dashboard_page.dart';
 import 'package:savesmart/features/profile/presentation/pages/profile_page.dart';
+import 'package:savesmart/features/savings/presentation/pages/savings_page.dart';
 import 'package:savesmart/features/tips/presentation/pages/tips_page.dart';
 import 'package:savesmart/features/transactions/presentation/pages/transactions_page.dart';
 
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const DashboardPage(),
     const GoalsPage(),
+    const SavingsPage(),
     const TransactionsPage(),
     const TipsPage(),
     const ProfilePage(),
@@ -51,9 +53,14 @@ class _HomePageState extends State<HomePage> {
             label: 'Goals',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            activeIcon: Icon(Icons.account_balance_wallet),
+            label: 'Savings',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long_outlined),
             activeIcon: Icon(Icons.receipt_long),
-            label: 'Transactions',
+            label: 'History',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.lightbulb_outline),

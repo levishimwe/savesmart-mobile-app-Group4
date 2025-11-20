@@ -74,38 +74,55 @@ class GoalsPage extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(AppConstants.mediumPadding),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final doc = docs[index];
-              final data = doc.data();
-              final goalId = doc.id;
-              final name = data['name'] as String? ?? 'Goal';
-              final current = (data['currentAmount'] as num?)?.toDouble() ?? 0;
-              final target = (data['targetAmount'] as num?)?.toDouble() ?? 0;
-              final withdrawn = data['withdrawn'] as bool? ?? false;
-              final progress = target == 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
-              final isAchieved = current >= target && target > 0;
+          // Get user's total savings to display as current amount for goals
+          final uid = FirebaseAuth.instance.currentUser?.uid;
+          
+          return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: uid == null
+                ? null
+                : FirebaseFirestore.instance
+                    .collection(AppConstants.usersCollection)
+                    .doc(uid)
+                    .snapshots(),
+            builder: (context, userSnapshot) {
+              // Get user's total savings
+              final totalSavings = (userSnapshot.data?.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
 
-              // Smart icon/color selection based on goal name
-              final iconData = _getIconForGoal(name);
-              final icon = iconData['icon'] as IconData;
-              final color = iconData['color'] as Color;
+              return ListView.builder(
+                padding: const EdgeInsets.all(AppConstants.mediumPadding),
+                itemCount: docs.length,
+                itemBuilder: (context, index) {
+                  final doc = docs[index];
+                  final data = doc.data();
+                  final goalId = doc.id;
+                  final name = data['name'] as String? ?? 'Goal';
+                  // Use totalSavings as current amount for goals (not static currentAmount)
+                  final current = totalSavings;
+                  final target = (data['targetAmount'] as num?)?.toDouble() ?? 0;
+                  final withdrawn = data['withdrawn'] as bool? ?? false;
+                  final progress = target == 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
+                  final isAchieved = current >= target && target > 0;
 
-              return _buildGoalCard(
-                context,
-                goalId,
-                name,
-                '\$${current.toStringAsFixed(0)}',
-                '\$${target.toStringAsFixed(0)}',
-                progress,
-                icon,
-                color,
-                isAchieved,
-                withdrawn,
-                current,
-                target,
+                  // Smart icon/color selection based on goal name
+                  final iconData = _getIconForGoal(name);
+                  final icon = iconData['icon'] as IconData;
+                  final color = iconData['color'] as Color;
+
+                  return _buildGoalCard(
+                    context,
+                    goalId,
+                    name,
+                    '\$${current.toStringAsFixed(0)}',
+                    '\$${target.toStringAsFixed(0)}',
+                    progress,
+                    icon,
+                    color,
+                    isAchieved,
+                    withdrawn,
+                    current,
+                    target,
+                  );
+                },
               );
             },
           );
@@ -330,7 +347,7 @@ class GoalsPage extends StatelessWidget {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => _showWithdrawDialog(context, goalId, title, current),
+                    onPressed: () => _showWithdrawDialog(context, goalId, title, target),
                     icon: const Icon(Icons.account_balance_wallet),
                     label: const Text('Withdraw'),
                     style: ElevatedButton.styleFrom(
@@ -550,7 +567,7 @@ class GoalsPage extends StatelessWidget {
     BuildContext context,
     String goalId,
     String goalName,
-    String currentAmountStr,
+    String targetAmountStr,
   ) {
     showDialog(
       context: context,
@@ -565,7 +582,16 @@ class GoalsPage extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Text('Amount to withdraw: $currentAmountStr'),
+            Text('Amount to withdraw: $targetAmountStr'),
+            const SizedBox(height: 8),
+            const Text(
+              '(Target amount for this goal)',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
             const SizedBox(height: 16),
             const Text(
               'This will:',
@@ -584,7 +610,7 @@ class GoalsPage extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              await _processWithdrawal(context, goalId, goalName, currentAmountStr);
+              await _processWithdrawal(context, goalId, goalName, targetAmountStr);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -637,6 +663,11 @@ class GoalsPage extends StatelessWidget {
         return;
       }
 
+      // IMPORTANT: Withdraw only the TARGET AMOUNT, not the current amount
+      // Example: Goal is "Laptop" with target $2000, user has $5000 in goal
+      // User should only withdraw $2000 (the target), not $5000
+      final withdrawalAmount = targetAmount;
+
       // Create withdrawal transaction
       final txRef = FirebaseFirestore.instance
           .collection(AppConstants.transactionsCollection)
@@ -646,18 +677,27 @@ class GoalsPage extends StatelessWidget {
         'id': txRef.id,
         'userId': uid,
         'description': 'Withdrawal from $goalName',
-        'amount': currentAmount,
+        'amount': withdrawalAmount,
         'type': 'withdrawal',
         'date': FieldValue.serverTimestamp(),
         'goalId': goalId,
       });
 
-      // Note: We do NOT decrease totalSavings here because:
-      // 1. If money was allocated from savings when goal was created, 
-      //    totalSavings was already decreased at that time
-      // 2. Withdrawal just means user is taking money from the goal,
-      //    not from their general savings pool
-      // The withdrawal transaction is just for record-keeping
+      // IMPORTANT: Decrease totalSavings when user withdraws money
+      // When user withdraws, they're taking money out of their savings
+      final userRef = FirebaseFirestore.instance
+          .collection(AppConstants.usersCollection)
+          .doc(uid);
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final userDoc = await transaction.get(userRef);
+        final currentTotalSavings = (userDoc.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
+        
+        // Decrease totalSavings by withdrawal amount (targetAmount)
+        final newTotalSavings = (currentTotalSavings - withdrawalAmount).clamp(0, double.infinity);
+        
+        transaction.update(userRef, {'totalSavings': newTotalSavings});
+      });
 
       // Mark goal as withdrawn
       await FirebaseFirestore.instance
@@ -669,14 +709,14 @@ class GoalsPage extends StatelessWidget {
         'currentAmount': 0, // Reset goal amount after withdrawal
       });
 
-      // Send withdrawal confirmation email
-      await _sendWithdrawalEmail(uid, goalName, currentAmount);
+      // Send withdrawal confirmation email (with withdrawal amount)
+      await _sendWithdrawalEmail(uid, goalName, withdrawalAmount);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Successfully withdrew \$${currentAmount.toStringAsFixed(2)} from $goalName!',
+              'Successfully withdrew \$${withdrawalAmount.toStringAsFixed(2)} from $goalName!',
             ),
             backgroundColor: AppConstants.successColor,
           ),

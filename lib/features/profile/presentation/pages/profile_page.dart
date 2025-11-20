@@ -187,26 +187,31 @@ class ProfilePage extends StatelessWidget {
                       color: AppConstants.errorColor,
                     ),
                     onTap: () async {
-                      // Show loading dialog
-                      showDialog(
+                      // Show confirmation dialog
+                      final shouldLogout = await showDialog<bool>(
                         context: context,
-                        barrierDismissible: false,
-                        builder: (context) => const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
+                        builder: (dialogContext) => AlertDialog(
+                          title: const Text('Logout'),
+                          content: const Text('Are you sure you want to logout?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext, true),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppConstants.errorColor,
+                              ),
+                              child: const Text('Logout'),
+                            ),
+                          ],
                         ),
                       );
-                      
-                      // Let main.dart handle navigation on Unauthenticated
-                      context.read<AuthBloc>().add(SignOutEvent());
-                      
-                      // Wait a moment for state change to propagate
-                      await Future.delayed(const Duration(milliseconds: 500));
-                      
-                      // Close loading dialog if still mounted
-                      if (context.mounted) {
-                        Navigator.pop(context);
+
+                      // If user confirmed, sign out
+                      if (shouldLogout == true && context.mounted) {
+                        context.read<AuthBloc>().add(SignOutEvent());
                       }
                     },
                   ),
