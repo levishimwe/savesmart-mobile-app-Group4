@@ -40,12 +40,11 @@ class WelcomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppConstants.largePadding * 2),
-              // Piggy bank illustration
-              Icon(
-                Icons.savings,
-                size: 150,
-                color: AppConstants.primaryGreen.withOpacity(0.8),
-              ),
+                  // Logo illustration
+                  Image.asset(
+                    'assets/images/welcomepagelologo.png',
+                    height: 150,
+                  ),
               const Spacer(),
               // Get Started button
               CustomButton(

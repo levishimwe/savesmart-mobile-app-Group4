@@ -10,178 +10,197 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppConstants.backgroundColor,
+      backgroundColor: const Color(0xFFE9F9F2),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              backgroundColor: AppConstants.primaryGreen,
-              expandedHeight: 200,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: const Text(
-                  'SaveSmart',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                background: Container(
-                  padding: const EdgeInsets.all(AppConstants.largePadding),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
-                      const SizedBox(height: 40),
-                      const Text(
-                        'Total Savings',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: Icon(Icons.attach_money, color: AppConstants.primaryGreen, size: 28),
                       ),
-                      const SizedBox(height: 8),
-                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                        stream: FirebaseFirestore.instance
-                            .collection(AppConstants.usersCollection)
-                            .doc(FirebaseAuth.instance.currentUser?.uid)
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          final total = (snapshot.data?.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
-                          return Text(
-                            '\$${total.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          );
-                        },
+                      const SizedBox(width: 8),
+                      const Text(
+                        'SaveSmart',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: AppConstants.primaryGreen,
+                        ),
                       ),
                     ],
                   ),
-                ),
+                  IconButton(
+                    icon: const Icon(Icons.settings, color: AppConstants.primaryGreen),
+                    onPressed: () {},
+                  ),
+                ],
               ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () {},
-                ),
-              ],
             ),
-            SliverPadding(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // Goals Section with circular progress - Dynamic from Firestore
-                  StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection(AppConstants.goalsCollection)
-                        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.hasError) {
-                        return const SizedBox(height: 100);
-                      }
-                      
-                      final docs = snapshot.data!.docs;
-                      
-                      // Sort by creation date and take top 3
-                      docs.sort((a, b) {
-                        final aTime = a.data()['createdAt'] as Timestamp?;
-                        final bTime = b.data()['createdAt'] as Timestamp?;
-                        if (aTime == null || bTime == null) return 0;
-                        return bTime.compareTo(aTime);
-                      });
-                      
-                      final topGoals = docs.take(3).toList();
-                      
-                      if (topGoals.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Text(
-                              'No goals yet. Add your first goal!',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
-                            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD6F5E6),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Total Savings',
+                      style: TextStyle(
+                        color: Color(0xFF1A7F64),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      stream: FirebaseFirestore.instance
+                          .collection(AppConstants.usersCollection)
+                          .doc(FirebaseAuth.instance.currentUser?.uid)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        final total = (snapshot.data?.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
+                        return Text(
+                          '\$${total.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
                           ),
                         );
-                      }
-                      
-                      // Icon and color options for goals
-                      const icons = [Icons.laptop, Icons.favorite, Icons.home, Icons.flight, Icons.school];
-                      const colors = [Colors.blue, Colors.red, Colors.green, Colors.orange, Colors.purple];
-                      
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(topGoals.length, (index) {
-                          final data = topGoals[index].data();
-                          final name = data['name'] as String? ?? 'Goal';
-                          final current = (data['currentAmount'] as num?)?.toDouble() ?? 0;
-                          final target = (data['targetAmount'] as num?)?.toDouble() ?? 0;
-                          final progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
-                          
-                          return _buildGoalCircle(
-                            name,
-                            '\$${target.toStringAsFixed(0)}',
-                            icons[index % icons.length],
-                            colors[index % colors.length],
-                            progress,
-                          );
-                        }),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  // Recent Transactions Section
-                  const Text(
-                    'Recent Transactions',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppConstants.textPrimary,
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(AppConstants.mediumPadding),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                          stream: FirebaseFirestore.instance
+                              .collection(AppConstants.goalsCollection)
+                              .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || snapshot.hasError) {
+                              return const SizedBox(height: 100);
+                            }
+                            final docs = snapshot.data!.docs;
+                            docs.sort((a, b) {
+                              final aTime = a.data()['createdAt'] as Timestamp?;
+                              final bTime = b.data()['createdAt'] as Timestamp?;
+                              if (aTime == null || bTime == null) return 0;
+                              return bTime.compareTo(aTime);
+                            });
+                            final topGoals = docs.take(3).toList();
+                            if (topGoals.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 24),
+                                  child: Text(
+                                    'No goals yet. Add your first goal!',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            const icons = [Icons.laptop, Icons.favorite, Icons.home, Icons.flight, Icons.school];
+                            const colors = [Colors.blue, Colors.red, Colors.green, Colors.orange, Colors.purple];
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: List.generate(topGoals.length, (index) {
+                                final data = topGoals[index].data();
+                                final name = data['name'] as String? ?? 'Goal';
+                                final current = (data['currentAmount'] as num?)?.toDouble() ?? 0;
+                                final target = (data['targetAmount'] as num?)?.toDouble() ?? 0;
+                                final progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
+                                return _buildGoalCircle(
+                                  name,
+                                  '\$${target.toStringAsFixed(0)}',
+                                  icons[index % icons.length],
+                                  colors[index % colors.length],
+                                  progress,
+                                );
+                              }),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Recent Transactions',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppConstants.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                          stream: FirebaseFirestore.instance
+                              .collection(AppConstants.transactionsCollection)
+                              .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || snapshot.hasError) {
+                              return const SizedBox.shrink();
+                            }
+                            final items = snapshot.data!.docs;
+                            items.sort((a, b) {
+                              final aTime = a.data()['date'] as Timestamp?;
+                              final bTime = b.data()['date'] as Timestamp?;
+                              if (aTime == null || bTime == null) return 0;
+                              return bTime.compareTo(aTime);
+                            });
+                            final recent = items.take(5).toList();
+                            return Column(
+                              children: recent.map((d) {
+                                final data = d.data();
+                                final title = data['description'] as String? ?? 'Transaction';
+                                final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+                                final isPositive = (data['type'] as String?) == 'deposit';
+                                final date = (data['date'] as Timestamp?)?.toDate();
+                                final icon = isPositive ? Icons.add_circle : Icons.remove_circle;
+                                final color = isPositive ? Colors.green : Colors.red;
+                                return _buildTransactionItem(
+                                  title,
+                                  '\$${amount.toStringAsFixed(2)}',
+                                  _formatDate(date),
+                                  icon,
+                                  color,
+                                  isPositive,
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+                      ]),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection(AppConstants.transactionsCollection)
-                        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.hasError) {
-                        return const SizedBox.shrink();
-                      }
-                      final items = snapshot.data!.docs;
-                      
-                      // Sort in-memory since orderBy requires composite index
-                      items.sort((a, b) {
-                        final aTime = a.data()['date'] as Timestamp?;
-                        final bTime = b.data()['date'] as Timestamp?;
-                        if (aTime == null || bTime == null) return 0;
-                        return bTime.compareTo(aTime); // descending
-                      });
-                      
-                      final recent = items.take(5).toList();
-                      
-                      return Column(
-                        children: recent.map((d) {
-                          final data = d.data();
-                          final title = data['description'] as String? ?? 'Transaction';
-                          final amount = (data['amount'] as num?)?.toDouble() ?? 0;
-                          final isPositive = (data['type'] as String?) == 'deposit';
-                          final date = (data['date'] as Timestamp?)?.toDate();
-                          final icon = isPositive ? Icons.add_circle : Icons.remove_circle;
-                          final color = isPositive ? Colors.green : Colors.red;
-                          return _buildTransactionItem(
-                            title,
-                            '\$${amount.toStringAsFixed(2)}',
-                            _formatDate(date),
-                            icon,
-                            color,
-                            isPositive,
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-                ]),
+                ],
               ),
             ),
           ],

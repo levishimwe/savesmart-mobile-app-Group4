@@ -100,11 +100,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               color: AppConstants.lightGreen,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
-                              Icons.savings,
-                              color: AppConstants.primaryGreen,
-                              size: 32,
-                            ),
+                                child: Image.asset(
+                                  'assets/images/registerpagelogo.png',
+                                  height: 32,
+                                ),
                           ),
                           const SizedBox(width: 12),
                           const Text(

@@ -80,11 +80,10 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Icon(
-                            Icons.savings,
-                            color: AppConstants.primaryGreen,
-                            size: 64,
-                          ),
+                              child: Image.asset(
+                                'assets/images/loginpagelogo.png',
+                                height: 64,
+                              ),
                         ),
                         const SizedBox(height: 16),
                         const Text(
