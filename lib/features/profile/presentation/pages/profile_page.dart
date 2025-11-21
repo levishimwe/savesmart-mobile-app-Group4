@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:savesmart/core/utils/constants.dart';
 import 'package:savesmart/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:savesmart/features/auth/presentation/pages/welcome_page.dart';
 
 /// Profile page
 class ProfilePage extends StatelessWidget {
@@ -17,7 +18,16 @@ class ProfilePage extends StatelessWidget {
           title: const Text('Profile'),
           backgroundColor: AppConstants.primaryGreen,
         ),
-        body: BlocBuilder<AuthBloc, AuthState>(
+        body: BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is Unauthenticated) {
+              // Navigate to welcome page after logout
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const WelcomePage()),
+                (route) => false,
+              );
+            }
+          },
           builder: (context, state) {
             final uid = FirebaseAuth.instance.currentUser?.uid;
             return ListView(
