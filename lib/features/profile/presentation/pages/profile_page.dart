@@ -13,10 +13,17 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: AppConstants.backgroundColor,
+        backgroundColor: const Color(0xFFE9F9F2), // Light green background from Figma
         appBar: AppBar(
-          title: const Text('Profile'),
+          title: const Text(
+            'Profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           backgroundColor: AppConstants.primaryGreen,
+          elevation: 0,
         ),
         body: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
@@ -31,21 +38,25 @@ class ProfilePage extends StatelessWidget {
           builder: (context, state) {
             final uid = FirebaseAuth.instance.currentUser?.uid;
             return ListView(
-              padding: const EdgeInsets.all(AppConstants.mediumPadding),
+              padding: const EdgeInsets.all(16),
               children: [
                 // Profile Header
                 Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.mediumPadding),
+                    padding: const EdgeInsets.all(20),
                     child: Row(
                       children: [
                         CircleAvatar(
-                          radius: 40,
-                          backgroundColor: AppConstants.lightGreen,
+                          radius: 35,
+                          backgroundColor: AppConstants.primaryGreen,
                           child: const Icon(
                             Icons.person,
-                            size: 40,
-                            color: AppConstants.primaryGreen,
+                            size: 35,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -70,14 +81,17 @@ class ProfilePage extends StatelessWidget {
                                       Text(
                                         fullName,
                                         style: const TextStyle(
-                                          fontSize: 20,
+                                          fontSize: 18,
                                           fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
                                       Text(
                                         email,
                                         style: const TextStyle(
-                                          color: AppConstants.textSecondary,
+                                          color: Color(0xFF757575),
+                                          fontSize: 13,
                                         ),
                                       ),
                                     ],
@@ -88,7 +102,10 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit),
+                          icon: const Icon(
+                            Icons.edit,
+                            color: AppConstants.primaryGreen,
+                          ),
                           onPressed: () {},
                         ),
                       ],
@@ -98,16 +115,21 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 16),
                 // Stats
                 Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Your Progress',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -169,28 +191,26 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 // Settings
-                _buildSettingsTile(
-                  'Notification',
-                  Icons.notifications_outlined,
-                  () {},
-                ),
-                _buildSettingsTile(
-                  'Account Setting',
-                  Icons.settings_outlined,
-                  () {},
-                ),
-                _buildSettingsTile('Transaction History', Icons.history, () {}),
+                _buildNotificationTile(),
                 const SizedBox(height: 16),
                 // Logout
                 Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     leading: const Icon(
                       Icons.logout,
                       color: AppConstants.errorColor,
                     ),
                     title: const Text(
                       'Logout',
-                      style: TextStyle(color: AppConstants.errorColor),
+                      style: TextStyle(
+                        color: AppConstants.errorColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     trailing: const Icon(
                       Icons.chevron_right,
@@ -233,6 +253,65 @@ class ProfilePage extends StatelessWidget {
       );
   }
 
+  Widget _buildNotificationTile() {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseAuth.instance.currentUser?.uid == null
+          ? null
+          : FirebaseFirestore.instance
+              .collection(AppConstants.usersCollection)
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .snapshots(),
+      builder: (context, snapshot) {
+        final notificationsEnabled = snapshot.data?.data()?['notificationsEnabled'] as bool? ?? true;
+        
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: const Icon(Icons.notifications_outlined, color: AppConstants.primaryGreen),
+            title: const Text(
+              'Notification',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
+            trailing: Switch(
+              value: notificationsEnabled,
+              activeColor: AppConstants.primaryGreen,
+              onChanged: (value) async {
+                final uid = FirebaseAuth.instance.currentUser?.uid;
+                if (uid != null) {
+                  await FirebaseFirestore.instance
+                      .collection(AppConstants.usersCollection)
+                      .doc(uid)
+                      .update({'notificationsEnabled': value});
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          value 
+                              ? 'Notifications enabled' 
+                              : 'Notifications disabled',
+                        ),
+                        duration: const Duration(seconds: 2),
+                        backgroundColor: AppConstants.primaryGreen,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildStatRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -241,25 +320,22 @@ class ProfilePage extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppConstants.textSecondary),
+            style: const TextStyle(
+              color: Color(0xFF757575),
+              fontSize: 14,
+            ),
           ),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.black87,
+            ),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildSettingsTile(String title, IconData icon, VoidCallback onTap) {
-    return Card(
-      child: ListTile(
-        leading: Icon(icon, color: AppConstants.primaryGreen),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-    );
-  }
+  
 }
