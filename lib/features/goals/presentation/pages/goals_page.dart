@@ -557,7 +557,7 @@ class GoalsPage extends StatelessWidget {
         hasEnoughSavings: hasEnoughSavings,
       );
     } catch (e) {
-      print('Failed to send email notification: $e');
+      debugPrint('Failed to send email notification: $e');
       // Don't throw - email failure shouldn't block goal creation
     }
   }
@@ -763,7 +763,7 @@ class GoalsPage extends StatelessWidget {
         amount: amount,
       );
     } catch (e) {
-      print('Failed to send withdrawal email: $e');
+      debugPrint('Failed to send withdrawal email: $e');
     }
   }
 

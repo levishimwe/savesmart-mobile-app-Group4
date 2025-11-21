@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
@@ -20,7 +21,7 @@ class EmailService {
     required bool hasEnoughSavings,
   }) async {
     try {
-      print('📧 Attempting to send goal notification to: $userEmail');
+      debugPrint('📧 Attempting to send goal notification to: $userEmail');
       
       // Configure SMTP server (Gmail example)
       // For production, use SendGrid, AWS SES, or Firebase Functions
@@ -68,12 +69,12 @@ The $_appName Team
         ..subject = subject
         ..text = body;
 
-      print('📤 Sending email with subject: $subject');
+      debugPrint('📤 Sending email with subject: $subject');
       await send(message, smtpServer);
-      print('✅ Email sent successfully to $userEmail');
+      debugPrint('✅ Email sent successfully to $userEmail');
     } catch (e) {
-      print('❌ Failed to send email to $userEmail');
-      print('❌ Error details: $e');
+      debugPrint('❌ Failed to send email to $userEmail');
+      debugPrint('❌ Error details: $e');
       // Don't throw error - email failure shouldn't block goal creation
     }
   }
@@ -107,9 +108,9 @@ The $_appName Team
 ''';
 
       await send(message, smtpServer);
-      print('✅ Withdrawal confirmation sent to $userEmail');
+      debugPrint('✅ Withdrawal confirmation sent to $userEmail');
     } catch (e) {
-      print('❌ Failed to send withdrawal email: $e');
+      debugPrint('❌ Failed to send withdrawal email: $e');
     }
   }
 
@@ -148,9 +149,9 @@ The $_appName Team
 ''';
 
       await send(message, smtpServer);
-      print('✅ Weekly reminder sent to $userEmail');
+      debugPrint('✅ Weekly reminder sent to $userEmail');
     } catch (e) {
-      print('❌ Failed to send weekly reminder: $e');
+      debugPrint('❌ Failed to send weekly reminder: $e');
     }
   }
 }
