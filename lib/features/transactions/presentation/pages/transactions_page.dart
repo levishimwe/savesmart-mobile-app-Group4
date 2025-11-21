@@ -118,6 +118,8 @@ class TransactionsPage extends StatelessWidget {
                 icon,
                 color,
                 isPositive,
+                amount,
+                type,
               );
             },
           );
@@ -136,6 +138,8 @@ class TransactionsPage extends StatelessWidget {
     IconData icon,
     Color color,
     bool isPositive,
+    double amountValue,
+    String type,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -150,13 +154,30 @@ class TransactionsPage extends StatelessWidget {
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(date),
-        trailing: Text(
-          '${isPositive ? '+' : '-'}$amount',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: isPositive ? Colors.green : Colors.red,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${isPositive ? '+' : '-'}$amount',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isPositive ? Colors.green : Colors.red,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              onPressed: () => _showDeleteDialog(
+                context,
+                transactionId,
+                title,
+                amountValue,
+                type,
+              ),
+              tooltip: 'Delete transaction',
+            ),
+          ],
         ),
       ),
     );
@@ -175,5 +196,97 @@ class TransactionsPage extends StatelessWidget {
     ];
     if (m < 1 || m > 12) return '';
     return months[m - 1];
+  }
+
+  /// Show delete confirmation dialog
+  void _showDeleteDialog(
+    BuildContext context,
+    String transactionId,
+    String description,
+    double amount,
+    String type,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Transaction'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Are you sure you want to delete this transaction from history?'),
+            const SizedBox(height: 16),
+            Text(
+              description,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text('\$${amount.toStringAsFixed(2)}'),
+            const SizedBox(height: 16),
+            const Text(
+              'Note: This only removes the transaction from history. Your total savings will not be affected.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _deleteTransaction(context, transactionId, amount, type);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Delete transaction (display only - does NOT affect totalSavings)
+  Future<void> _deleteTransaction(
+    BuildContext context,
+    String transactionId,
+    double amount,
+    String type,
+  ) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+
+      // Delete transaction from history (display only)
+      // This does NOT affect the user's totalSavings
+      await FirebaseFirestore.instance
+          .collection(AppConstants.transactionsCollection)
+          .doc(transactionId)
+          .delete();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Transaction deleted from history!'),
+            backgroundColor: AppConstants.successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete transaction: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

@@ -449,7 +449,7 @@ class SavingsPage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Are you sure you want to delete this saving?'),
+            const Text('Are you sure you want to delete this saving from history?'),
             const SizedBox(height: 16),
             Text(
               description,
@@ -458,7 +458,7 @@ class SavingsPage extends StatelessWidget {
             Text('\$${amount.toStringAsFixed(2)}'),
             const SizedBox(height: 16),
             const Text(
-              'This will also decrease your total savings accordingly.',
+              'Note: This only removes the saving from history. Your total savings will not be affected.',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -486,7 +486,7 @@ class SavingsPage extends StatelessWidget {
     );
   }
 
-  /// Delete saving and update total savings
+  /// Delete saving (display only - does NOT affect totalSavings)
   Future<void> _deleteSaving(
     BuildContext context,
     String savingId,
@@ -496,31 +496,17 @@ class SavingsPage extends StatelessWidget {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return;
 
-      // Delete the saving
+      // Delete the saving from history (display only)
+      // This does NOT affect the user's totalSavings
       await FirebaseFirestore.instance
           .collection(AppConstants.savingsCollection)
           .doc(savingId)
           .delete();
 
-      // Update totalSavings atomically (subtract the saving)
-      final userRef =
-          FirebaseFirestore.instance.collection(AppConstants.usersCollection).doc(uid);
-
-      await FirebaseFirestore.instance.runTransaction((t) async {
-        final snap = await t.get(userRef);
-        final totalSavings =
-            (snap.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
-
-        // Subtract the saving amount
-        final updated = (totalSavings - amount).clamp(0, double.infinity);
-
-        t.update(userRef, {'totalSavings': updated});
-      });
-
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Saving deleted successfully!'),
+            content: Text('Saving deleted from history!'),
             backgroundColor: AppConstants.successColor,
           ),
         );

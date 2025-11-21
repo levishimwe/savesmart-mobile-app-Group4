@@ -6,6 +6,7 @@ import 'package:savesmart/core/widgets/custom_button.dart';
 import 'package:savesmart/core/widgets/custom_text_field.dart';
 import 'package:savesmart/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:savesmart/features/auth/presentation/pages/register_page.dart';
+import 'package:savesmart/features/home/presentation/pages/home_page.dart';
 
 /// Login page
 class LoginPage extends StatefulWidget {
@@ -51,6 +52,12 @@ class _LoginPageState extends State<LoginPage> {
                   content: Text(state.message),
                   backgroundColor: AppConstants.errorColor,
                 ),
+              );
+            } else if (state is Authenticated) {
+              // Navigate to home page after successful login
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomePage()),
+                (route) => false,
               );
             }
           },
