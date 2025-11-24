@@ -6,6 +6,7 @@ import 'package:savesmart/core/widgets/custom_button.dart';
 import 'package:savesmart/core/widgets/custom_text_field.dart';
 import 'package:savesmart/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:savesmart/features/auth/presentation/pages/login_page.dart';
+import 'package:savesmart/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:savesmart/features/home/presentation/pages/home_page.dart';
 
 /// Register page
@@ -71,6 +72,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   content: Text(state.message),
                   backgroundColor: AppConstants.errorColor,
                 ),
+              );
+            } else if (state is EmailVerificationPending) {
+              // Navigate to email verification page
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const EmailVerificationPage()),
+                (route) => false,
               );
             } else if (state is Authenticated) {
               // Navigate to home page after successful registration

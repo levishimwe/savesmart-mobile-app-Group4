@@ -157,6 +157,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return user;
       }
     } catch (e) {
+      final msg = e.toString();
+      // Provide clearer guidance for a common misconfiguration on web
+      if (msg.contains('people.googleapis.com') ||
+          msg.contains('People API') ||
+          msg.contains('PERMISSION_DENIED') && msg.contains('403')) {
+        throw Exception(
+          'Google Sign-In is not fully configured: People API is disabled for this project.\n'
+          'Action: Open Google Cloud Console → APIs & Services → Library → enable "People API" for project, '
+          'then wait a minute and try again.',
+        );
+      }
       throw Exception('Failed to sign in with Google: $e');
     }
   }

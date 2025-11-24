@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:savesmart/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:savesmart/features/auth/presentation/pages/welcome_page.dart';
+import 'package:savesmart/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:savesmart/core/utils/constants.dart';
 import 'package:savesmart/features/goals/presentation/pages/goals_page.dart';
 import 'package:savesmart/features/home/presentation/pages/dashboard_page.dart';
@@ -29,9 +33,26 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Unauthenticated) {
+          // Extra safety redirect to welcome page clearing stack
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const WelcomePage()),
+            (route) => false,
+          );
+        } else if (state is EmailVerificationPending) {
+          // Navigate to verification page
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const EmailVerificationPage(),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: _pages[_currentIndex],
+        bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -73,6 +94,7 @@ class _HomePageState extends State<HomePage> {
             label: 'Profile',
           ),
         ],
+        ),
       ),
     );
   }

@@ -1,1185 +1,666 @@
-# SaveSmart: A Digital Piggy Bank for Empowering Financial Wellness in Young Adults
+# SaveSmart - Digital Piggy Bank for Young Adults 💰
 
-<div align="center">
+> **Mobile application empowering financial wellness through goal-based savings, transaction tracking, and financial education.**
 
-![Flutter](https://img.shields.io/badge/Flutter-3.9.2-02569B?style=for-the-badge&logo=flutter)
-![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
-![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart)
-![License](https://img.shields.io/badge/License-Educational-green?style=for-the-badge)
-
-**A comprehensive mobile application designed to enhance financial literacy and promote healthy saving behaviors among young adults and university students.**
-
-[Features](#features) • [Architecture](#architecture) • [Setup](#setup-instructions) • [Demo](#demo-video) • [Team](#team-members)
-
-</div>
+📹 [Demo Video](#-demo-video) • 📚 [Documentation](docs/) • ⭐ [GitHub](https://github.com/levishimwe/savesmart)
 
 ---
 
 ## 📋 Table of Contents
-
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Technology Stack](#technology-stack)
-- [Setup Instructions](#setup-instructions)
-- [Database Design](#database-design)
-- [Firebase Security Rules](#firebase-security-rules)
-- [Testing](#testing)
-- [Building & Deployment](#building--deployment)
-- [Demo Video](#demo-video)
-- [Known Limitations & Future Work](#known-limitations--future-work)
-- [Team Members & Contributions](#team-members--contributions)
-- [License](#license)
+1. [Overview](#-overview) • 2. [Features](#-features) • 3. [Screenshots](#-screenshots) • 4. [Architecture](#-architecture) • 5. [Setup](#-setup-instructions) • 6. [Firebase Config](#-firebase-configuration) • 7. [Database Schema](#-database-schema-erd) • 8. [Testing](#-testing) • 9. [Known Issues](#-known-issues--fixes) • 10. [Team](#-team--contributions)
 
 ---
 
-## 🎯 Project Overview
+## 🎯 Overview
 
-SaveSmart addresses the critical need for financial literacy among young adults (18-24 years) by providing an intuitive, educational, and engaging platform for money management. Research shows that only 14.5% of university students can correctly answer basic financial literacy questions, highlighting the urgent need for accessible financial education tools.
+SaveSmart addresses financial literacy gaps among young adults (18-24). Only 14.5% of university students correctly answer basic financial questions, highlighting the need for accessible financial education tools.
 
-### Problem Statement
-Despite widespread access to digital financial tools, young adults struggle with fundamental financial management skills. Existing applications either overwhelm users with complex features or lack the educational components necessary to build lasting financial competency.
+**Problem:** Young adults struggle with financial management despite access to digital tools. Existing apps overwhelm users or lack educational components.
 
-### Solution
-SaveSmart combines practical money management tools with targeted financial education, specifically designed to meet young adults where they are in their financial journey.
+**Solution:** SaveSmart combines practical money management with financial education:
+- Visual progress tracking for savings goals • Simple deposit/withdrawal system • Financial tips & content
+- Email verification security • Real-time Firebase sync • Google Sign-In integration
+
+**Tech Stack:** Flutter 3.9.2 | Firebase (Auth, Firestore) | BLoC Pattern | Clean Architecture | GetIt DI
 
 ---
 
 ## ✨ Features
 
 ### 🔐 Authentication & Security
-- **Dual Authentication Methods**: Email/Password and Google Sign-In
-- **Email Verification**: Secure account activation with OTP
-- **Input Validation**: Comprehensive validation for all user inputs
-- **Password Security**: Minimum 6 characters with secure Firebase storage
-- **Session Management**: Persistent authentication state with SharedPreferences
+- **Email/Password Signup** with mandatory email verification (first-time only)
+- **Google Sign-In** with People API integration for profile data
+- **Session Persistence** via SharedPreferences for seamless login
+- **Email Verification Page** with resend button and status checking
 
-### 💰 Savings Goals Management
-- **Goal Creation**: Set personalized savings targets with custom amounts and deadlines
-- **Visual Progress Tracking**: Circular progress indicators showing goal completion
-- **Multiple Goals**: Manage unlimited savings goals simultaneously
-- **Real-time Updates**: Instant synchronization with Firebase Firestore
-- **Goal Analytics**: Track total saved, goals achieved, and days saving
+**Auth BLoC States:**
+```dart
+abstract class AuthState extends Equatable {}
+class AuthInitial extends AuthState {}
+class AuthLoading extends AuthState {}
+class AuthAuthenticated extends AuthState { final User user; }
+class EmailVerificationPending extends AuthState { final User user; }
+class AuthError extends AuthState { final String message; }
+class Unauthenticated extends AuthState {}
+```
 
-### 📊 Expense Tracking & Transactions
-- **Transaction Recording**: Add income and expense transactions
-- **Categorization**: Organize transactions by category (Food, Transport, Shopping, etc.)
-- **Real-time Sync**: All transactions instantly synced to Firebase
-- **Transaction History**: View complete transaction history with date formatting
-- **Dashboard Overview**: See recent transactions on the main dashboard
+### �� Savings Goals Management
+- **Create Goals** with target amounts & deadlines • **Visual Progress** via circular indicators
+- **Dynamic Dashboard** showing top 3 recent goals • **Allocate Savings** from total to specific goals
+- **Withdraw Feature** for 100% achieved goals • **Real-time Sync** with Firestore listeners
 
-### 📚 Financial Education
-- **Weekly Financial Tips**: Curated financial advice updated weekly
-- **Educational Articles**: Content on budgeting strategies, savings techniques, and student finance
-- **Visual Learning**: Image-based tip cards for better engagement
-- **Categories**: 
-  - Weekly Financial Tips
-  - Savings Strategies
-  - Budgeting Strategies
-  - Student Finance Tips
+**Progress Calculation:**
+```dart
+double get progress => (currentAmount / targetAmount * 100).clamp(0.0, 100.0);
+bool get isCompleted => currentAmount >= targetAmount;
+```
 
-### 👤 Profile & Settings
-- **User Profile**: Display user information (name, email, avatar)
-- **Progress Statistics**: 
-  - Total amount saved
-  - Number of goals achieved
-  - Days actively saving
-- **Notification Management**: Toggle notifications on/off with Firestore persistence
-- **Secure Logout**: Complete session termination
+### 📊 Transaction Management
+- **Deposits & Withdrawals** with validation • **Transaction History** with date filters
+- **Categories:** Food, Transport, Shopping, Bills, Entertainment, Other
+- **Auto-logging** for withdrawals • **Type Tracking** (Income/Expense)
 
-### 🎨 User Experience
-- **Responsive Design**: Works flawlessly on phones from 5.5″ to 6.7″+
-- **Landscape Support**: Full landscape mode compatibility without pixel overflow
-- **Material Design**: Following Material Design 3 guidelines
-- **Color Accessibility**: 4.5:1 contrast ratio for WCAG AA compliance
-- **Smooth Navigation**: Seamless page transitions with proper back-stack management
-- **Loading States**: Visual feedback during data operations
+### 📚 Financial Education (Tips)
+- **Weekly Tips** with curated financial advice and images
+- **Categories:** Budgeting, Savings, Student Finance, Weekly Tips
+- **Firestore-backed** for easy updates • **Visual Engagement** with tip cards
+
+### 👤 Profile & Analytics
+- **Total Saved** across all transactions • **Goals Achieved** count (100%+ goals)
+- **Days Saving** since account creation • **Notifications Toggle** persisted to Firestore + SharedPreferences
+
+### 📧 Email Notifications
+- **Goal Creation Emails:** "Keep Saving!" or "Congratulations!" based on user balance
+- **Withdrawal Confirmation** receipt after successful withdrawal
+- **SMTP Config:** Gmail (dev) → SendGrid/Firebase Functions (production)
+
+**Email Service:**
+```dart
+class EmailService {
+  static const String _senderEmail = 'your-email@gmail.com';
+  static const String _senderPassword = 'your-app-password'; // Gmail App Password
+}
+```
+
+---
+
+## 📸 Screenshots
+
+> **Note:** Add screenshots before submission
+
+**Authentication Flow:** `[Welcome] → [Register] → [Email Verification] → [Login] → [Dashboard]`
+**Main Screens:** `[Dashboard] → [Goals] → [Transactions] → [Tips] → [Profile]`
+**Key Features:** Goal progress, Withdraw dialog, Email sample, Responsive layout, Firestore console
 
 ---
 
 ## 🏗️ Architecture
 
-SaveSmart follows **Clean Architecture** principles with **BLoC (Business Logic Component)** pattern for state management, ensuring separation of concerns, testability, and maintainability.
-
-### Project Structure
-
-```
-lib/
-├── core/                           # Core functionality & shared utilities
-│   ├── di/                         # Dependency Injection (GetIt)
-│   │   └── injection_container.dart
-│   ├── error/                      # Error handling
-│   │   ├── failures.dart
-│   │   └── exceptions.dart
-│   ├── services/                   # Core services
-│   │   └── notification_service.dart
-│   ├── usecase/                    # Base use case
-│   │   └── usecase.dart
-│   ├── utils/                      # Constants, validators, helpers
-│   │   ├── constants.dart
-│   │   ├── validators.dart
-│   │   └── date_formatter.dart
-│   └── widgets/                    # Reusable widgets
-│       ├── custom_button.dart
-│       ├── custom_text_field.dart
-│       └── loading_indicator.dart
-│
-├── features/                       # Feature modules (Clean Architecture)
-│   │
-│   ├── auth/                       # Authentication Feature
-│   │   ├── data/
-│   │   │   ├── datasources/
-│   │   │   │   └── auth_remote_data_source.dart
-│   │   │   ├── models/
-│   │   │   │   └── user_model.dart
-│   │   │   └── repositories/
-│   │   │       └── auth_repository_impl.dart
-│   │   ├── domain/
-│   │   │   ├── entities/
-│   │   │   │   └── user.dart
-│   │   │   ├── repositories/
-│   │   │   │   └── auth_repository.dart
-│   │   │   └── usecases/
-│   │   │       ├── sign_in_with_email.dart
-│   │   │       ├── sign_in_with_google.dart
-│   │   │       ├── sign_up_with_email.dart
-│   │   │       ├── sign_out.dart
-│   │   │       └── get_current_user.dart
-│   │   └── presentation/
-│   │       ├── bloc/
-│   │       │   ├── auth_bloc.dart
-│   │       │   ├── auth_event.dart
-│   │       │   └── auth_state.dart
-│   │       └── pages/
-│   │           ├── welcome_page.dart
-│   │           ├── login_page.dart
-│   │           └── register_page.dart
-│   │
-│   ├── goals/                      # Savings Goals Feature
-│   │   ├── data/
-│   │   │   ├── datasources/
-│   │   │   │   └── goals_remote_data_source.dart
-│   │   │   ├── models/
-│   │   │   │   └── savings_goal_model.dart
-│   │   │   └── repositories/
-│   │   │       └── goals_repository_impl.dart
-│   │   ├── domain/
-│   │   │   ├── entities/
-│   │   │   │   └── savings_goal.dart
-│   │   │   └── repositories/
-│   │   │       └── goals_repository.dart
-│   │   └── presentation/
-│   │       └── pages/
-│   │           └── goals_page.dart
-│   │
-│   ├── transactions/               # Expense Tracking Feature
-│   │   ├── data/
-│   │   │   ├── models/
-│   │   │   │   └── transaction_model.dart
-│   │   │   └── repositories/
-│   │   │       └── transactions_repository_impl.dart
-│   │   ├── domain/
-│   │   │   ├── entities/
-│   │   │   │   └── transaction.dart
-│   │   │   └── repositories/
-│   │   │       └── transactions_repository.dart
-│   │   └── presentation/
-│   │       └── pages/
-│   │           └── transactions_page.dart
-│   │
-│   ├── home/                       # Dashboard/Home Feature
-│   │   └── presentation/
-│   │       └── pages/
-│   │           ├── home_page.dart
-│   │           └── dashboard_page.dart
-│   │
-│   ├── tips/                       # Financial Tips Feature
-│   │   ├── domain/
-│   │   │   └── repositories/
-│   │   │       └── tips_repository.dart
-│   │   └── presentation/
-│   │       └── pages/
-│   │           └── tips_page.dart
-│   │
-│   ├── profile/                    # User Profile Feature
-│   │   └── presentation/
-│   │       └── pages/
-│   │           └── profile_page.dart
-│   │
-│   └── savings/                    # Savings Overview Feature
-│       └── presentation/
-│           └── pages/
-│               └── savings_page.dart
-│
-├── firebase_options.dart           # Firebase configuration
-└── main.dart                       # Application entry point
-```
+**Clean Architecture** with **BLoC Pattern** for separation of concerns and predictable state management.
 
 ### Architectural Layers
+1. **Presentation:** UI + Widgets + BLoC (Events & States)
+2. **Domain:** Business logic + Entities + Repository interfaces + Use cases
+3. **Data:** Models + Firebase data sources + Repository implementations
 
-#### 1. **Presentation Layer**
-- **Responsibility**: UI and user interaction
-- **Components**: 
-  - Pages/Screens
-  - BLoC for state management
-  - Widgets
-- **Technologies**: Flutter widgets, flutter_bloc
+### Data Flow
+```
+UI (User Action) → BLoC (Events → States) → Domain (Use Cases) 
+→ Data (Repositories → Firebase) → UI Update (State Change)
+```
 
-#### 2. **Domain Layer**
-- **Responsibility**: Business logic and rules
-- **Components**:
-  - Entities (pure Dart classes)
-  - Repository interfaces
-  - Use cases
-- **Technologies**: Pure Dart (no framework dependencies)
+### Dependency Injection (GetIt)
+```dart
+final sl = GetIt.instance;
 
-#### 3. **Data Layer**
-- **Responsibility**: Data sources and repository implementations
-- **Components**:
-  - Models (with JSON serialization)
-  - Remote data sources (Firebase)
-  - Repository implementations
-- **Technologies**: Firebase Auth, Cloud Firestore
-
-### State Management: BLoC Pattern
-
-SaveSmart uses the **BLoC (Business Logic Component)** pattern for predictable, testable state management:
-
-- **Events**: User actions (e.g., SignInRequested, CreateGoalRequested)
-- **States**: UI states (e.g., Loading, Success, Error)
-- **BLoCs**: Business logic processors that transform events into states
-
-**Benefits**:
-- ✅ Separation of business logic from UI
-- ✅ Testable and maintainable code
-- ✅ Predictable state changes
-- ✅ Easy debugging with BLoC observer
-
-### Dependency Injection
-
-Using **GetIt** for dependency injection:
-- Singleton services (Firebase, repositories)
-- Factory instances (BLoCs, use cases)
-- Centralized dependency management
+void init() {
+  // Blocs
+  sl.registerFactory(() => AuthBloc(signIn: sl(), signUp: sl()));
+  // Use Cases
+  sl.registerLazySingleton(() => SignInWithEmail(sl()));
+  // Repositories
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
+  // Data Sources
+  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl(sl()));
+  // External
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
+}
+```
 
 ---
 
-## 🛠️ Technology Stack
+## 📁 Project Structure
 
-### Frontend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Flutter** | 3.9.2+ | Cross-platform UI framework |
-| **Dart** | 3.9.2+ | Programming language |
-| **flutter_bloc** | 8.1.6 | State management |
-| **equatable** | 2.0.7 | Value equality |
-| **intl** | 0.19.0 | Internationalization & date formatting |
-
-### Backend & Database
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Firebase Core** | 3.6.0 | Firebase initialization |
-| **Firebase Auth** | 5.3.1 | User authentication |
-| **Cloud Firestore** | 5.4.4 | NoSQL cloud database |
-| **Google Sign-In** | 6.2.2 | Google OAuth authentication |
-
-### Utilities
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **get_it** | 8.0.2 | Dependency injection |
-| **shared_preferences** | 2.3.3 | Local storage for preferences |
-| **dartz** | 0.10.1 | Functional programming (Either, Option) |
-| **mailer** | 6.1.2 | Email notifications (OTP) |
-| **flutter_svg** | 2.0.14 | SVG image support |
-
-### Development & Testing
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **flutter_lints** | 5.0.0 | Dart linting rules |
-| **flutter_test** | SDK | Widget testing |
-| **bloc_test** | 9.1.7 | BLoC testing utilities |
-| **mocktail** | 1.0.4 | Mocking for unit tests |
+```
+lib/
+├── core/
+│   ├── di/injection_container.dart          # GetIt DI setup
+│   ├── error/failures.dart, exceptions.dart
+│   ├── services/
+│   │   ├── email_service.dart               # Email notifications (Gmail SMTP)
+│   │   └── notification_service.dart
+│   ├── usecase/usecase.dart                 # Base use case class
+│   ├── utils/
+│   │   ├── constants.dart                   # App constants (colors, strings, API keys)
+│   │   ├── validators.dart                  # Input validators
+│   │   └── date_formatter.dart
+│   └── widgets/
+│       ├── custom_button.dart, custom_text_field.dart, loading_indicator.dart
+│
+├── features/
+│   ├── auth/                                # Authentication Feature
+│   │   ├── data/
+│   │   │   ├── datasources/auth_remote_data_source.dart    # Firebase Auth API
+│   │   │   ├── models/user_model.dart                      # JSON serialization
+│   │   │   └── repositories/auth_repository_impl.dart
+│   │   ├── domain/
+│   │   │   ├── entities/user.dart                          # Pure Dart entity
+│   │   │   ├── repositories/auth_repository.dart           # Interface
+│   │   │   └── usecases/
+│   │   │       ├── sign_in_with_email.dart, sign_in_with_google.dart
+│   │   │       ├── sign_up_with_email.dart, sign_out.dart, get_current_user.dart
+│   │   └── presentation/
+│   │       ├── bloc/auth_bloc.dart, auth_event.dart, auth_state.dart
+│   │       └── pages/
+│   │           ├── welcome_page.dart, login_page.dart, register_page.dart
+│   │           └── email_verification_page.dart
+│   │
+│   ├── goals/                               # Savings Goals Feature
+│   │   ├── data/, domain/, presentation/ (similar structure)
+│   │   └── presentation/pages/goals_page.dart
+│   │
+│   ├── transactions/                        # Transaction Management
+│   │   ├── data/, domain/, presentation/
+│   │
+│   ├── home/                                # Dashboard
+│   │   └── presentation/pages/home_page.dart, dashboard_page.dart
+│   │
+│   ├── tips/                                # Financial Tips
+│   │   └── presentation/pages/tips_page.dart
+│   │
+│   ├── profile/                             # User Profile
+│   │   └── presentation/pages/profile_page.dart
+│   │
+│   └── savings/                             # Savings Overview
+│       └── presentation/pages/savings_page.dart
+│
+├── firebase_options.dart                    # Firebase config (generated)
+└── main.dart                                # App entry point
+```
 
 ---
 
 ## 🚀 Setup Instructions
 
 ### Prerequisites
+- **Flutter SDK:** ≥3.9.2 (`flutter --version`)
+- **Dart SDK:** ≥3.9.2 (bundled)
+- **IDE:** Android Studio or VS Code
+- **Firebase Account:** Free tier
 
-Before you begin, ensure you have the following installed:
-
-- **Flutter SDK**: Version 3.9.2 or higher
-  ```bash
-  flutter --version
-  ```
-- **Dart SDK**: Version 3.9.2 or higher (comes with Flutter)
-- **IDE**: Android Studio, VS Code, or IntelliJ IDEA
-- **Git**: For version control
-- **Android Studio** (for Android development) or **Xcode** (for iOS development)
-- **Firebase Account**: For backend services
-
-### Installation Steps
-
-#### 1. Clone the Repository
-
+### Quick Start
 ```bash
+# Clone & install
 git clone https://github.com/levishimwe/savesmart.git
 cd savesmart
-```
-
-#### 2. Install Dependencies
-
-```bash
 flutter pub get
-```
 
-#### 3. Firebase Configuration
-
-The Firebase configuration is already included in the project (`firebase_options.dart`), but if you need to connect to your own Firebase project:
-
-1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Add Android and/or iOS app to your Firebase project
-3. Download `google-services.json` (Android) and place in `android/app/`
-4. Download `GoogleService-Info.plist` (iOS) and place in `ios/Runner/`
-5. Run Firebase CLI to generate configuration:
-   ```bash
-   flutterfire configure
-   ```
-
-#### 4. Firebase Firestore Setup
-
-1. Enable **Firestore Database** in your Firebase console
-2. Create the following collections:
-   - `users`
-   - `goals`
-   - `transactions`
-   - `tips`
-3. Deploy security rules (see [Firebase Security Rules](#firebase-security-rules) section)
-
-#### 5. Firebase Authentication Setup
-
-Enable the following authentication methods in Firebase Console:
-- Email/Password
-- Google Sign-In
-
-#### 6. Run the Application
-
-##### On Android Emulator/Device
-```bash
+# Run
 flutter run
+
+# Test
+flutter test
+
+# Build APK
+flutter build apk --release
+# Output: build/app/outputs/flutter-apk/app-release.apk
 ```
 
-##### On iOS Simulator/Device (macOS only)
-```bash
-flutter run -d ios
-```
+### Key Dependencies
+- `flutter_bloc: ^8.1.6` - State management
+- `firebase_core: ^3.6.0`, `firebase_auth: ^5.3.1`, `cloud_firestore: ^5.4.4`
+- `google_sign_in: ^6.2.2` - Google OAuth
+- `get_it: ^8.0.2` - Dependency injection
+- `dartz: ^0.10.1` - Functional programming
+- `shared_preferences: ^2.3.3` - Local storage
 
-##### On Physical Device
-1. Enable Developer Mode on your device
-2. Connect via USB
-3. Run:
+---
+
+## 🔥 Firebase Configuration
+
+### 1. Create Firebase Project
+1. Visit [Firebase Console](https://console.firebase.google.com/) → **Add project**
+2. Project name: `savesmart` → Enable Google Analytics (optional) → **Create**
+
+### 2. Register Android App
+1. Click Android icon → Package name: `com.savesmart.app` (from `android/app/build.gradle.kts`)
+2. **Get SHA-1 for Google Sign-In:**
    ```bash
-   flutter devices  # List available devices
-   flutter run -d <device-id>
+   cd android
+   ./gradlew signingReport
+   # Copy SHA-1 from debug keystore
+   ```
+3. Download `google-services.json` → Place in `android/app/`
+
+### 3. Enable Authentication
+**Firebase Console → Authentication → Sign-in method:**
+- **Email/Password:** Enable
+- **Google:** Enable → Set support email → Save
+
+**Enable People API (Required for Google Sign-In):**
+1. [Google Cloud Console](https://console.cloud.google.com/) → Select project
+2. **APIs & Services** → **Library** → Search **"People API"** → **Enable**
+
+**Get Web Client ID:**
+1. Firebase → **Project Settings** → **Your apps** → Copy Web client ID
+2. Add to `lib/core/utils/constants.dart`:
+   ```dart
+   static const String googleWebClientId = 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com';
    ```
 
-#### 7. Verify Installation
+### 4. Create Firestore Database
+1. Firestore Database → **Create database** → **Test mode** → Region: `us-central1` → **Enable**
 
-After running the app:
-1. ✅ App launches without errors
-2. ✅ You can navigate to the Welcome page
-3. ✅ Registration with email works
-4. ✅ Google Sign-In works
-5. ✅ You can create a savings goal
-
-### Troubleshooting
-
-#### Common Issues
-
-**Issue**: `flutter: command not found`
-- **Solution**: Add Flutter to your PATH:
-  ```bash
-  export PATH="$PATH:`pwd`/flutter/bin"
-  ```
-
-**Issue**: Firebase configuration errors
-- **Solution**: Run `flutterfire configure` and select your Firebase project
-
-**Issue**: Google Sign-In not working
-- **Solution**: Ensure SHA-1 fingerprint is added to Firebase console:
-  ```bash
-  cd android
-  ./gradlew signingReport
-  ```
-
-**Issue**: Build failures on Android
-- **Solution**: Check Gradle version compatibility in `android/build.gradle`
-
----
-
-## 🗄️ Database Design
-
-### Entity-Relationship Diagram (ERD)
-
+### 5. Firestore Collections (Auto-created)
 ```
-┌─────────────────────────┐
-│       USERS             │
-├─────────────────────────┤
-│ PK: uid (String)        │
-│ email (String)          │
-│ displayName (String)    │
-│ photoURL (String?)      │
-│ createdAt (Timestamp)   │
-│ notificationsEnabled    │
-│    (Boolean)            │
-└─────────────────────────┘
-           │
-           │ 1:N
-           ├──────────────────────┐
-           │                      │
-           ▼                      ▼
-┌─────────────────────────┐  ┌──────────────────────────┐
-│       GOALS             │  │    TRANSACTIONS          │
-├─────────────────────────┤  ├──────────────────────────┤
-│ PK: goalId (String)     │  │ PK: transactionId (Str)  │
-│ FK: userId (String)     │  │ FK: userId (String)      │
-│ name (String)           │  │ description (String)     │
-│ targetAmount (double)   │  │ amount (double)          │
-│ currentAmount (double)  │  │ type (String)            │
-│ deadline (Timestamp)    │  │   - income/expense       │
-│ createdAt (Timestamp)   │  │ category (String)        │
-│ isCompleted (Boolean)   │  │ date (Timestamp)         │
-└─────────────────────────┘  └──────────────────────────┘
-
-           ┌──────────────────────────┐
-           │        TIPS              │
-           ├──────────────────────────┤
-           │ PK: tipId (String)       │
-           │ title (String)           │
-           │ description (String)     │
-           │ category (String)        │
-           │ imageUrl (String)        │
-           │ createdAt (Timestamp)    │
-           └──────────────────────────┘
+users/{userId}: uid, email, fullName, phoneNumber?, photoUrl?, totalSavings, createdAt, notificationsEnabled
+goals/{goalId}: id, userId, name, targetAmount, currentAmount, deadline, createdAt, description?
+transactions/{transactionId}: id, userId, type, amount, category, description, date, goalId?
+tips/{tipId}: id, title, content, category, createdAt, imageUrl?
 ```
 
-### Firestore Collections
+### 6. Create Firestore Indexes
+**Firestore Console → Indexes → Composite:**
 
-#### 1. **users** Collection
-```json
-{
-  "uid": "user123",
-  "email": "user@example.com",
-  "displayName": "John Doe",
-  "photoURL": "https://...",
-  "createdAt": "2024-01-15T10:30:00Z",
-  "notificationsEnabled": true
-}
-```
+**Index 1:** Collection: `goals` | Fields: `userId` (Asc), `createdAt` (Desc)  
+**Index 2:** Collection: `transactions` | Fields: `userId` (Asc), `date` (Desc)
 
-**Fields**:
-- `uid` (String, Primary Key): Firebase Auth UID
-- `email` (String): User's email address
-- `displayName` (String): User's full name
-- `photoURL` (String, Optional): Profile picture URL
-- `createdAt` (Timestamp): Account creation date
-- `notificationsEnabled` (Boolean): Notification preference
-
-**Indexes**: Automatic on `uid`
-
-#### 2. **goals** Collection
-```json
-{
-  "goalId": "goal456",
-  "userId": "user123",
-  "name": "Emergency Fund",
-  "targetAmount": 5000.00,
-  "currentAmount": 1250.00,
-  "deadline": "2024-12-31T23:59:59Z",
-  "createdAt": "2024-01-15T10:30:00Z",
-  "isCompleted": false
-}
-```
-
-**Fields**:
-- `goalId` (String, Primary Key): Auto-generated document ID
-- `userId` (String, Foreign Key): Reference to users collection
-- `name` (String): Goal name/description
-- `targetAmount` (Double): Target savings amount
-- `currentAmount` (Double): Current saved amount
-- `deadline` (Timestamp): Goal deadline
-- `createdAt` (Timestamp): Goal creation date
-- `isCompleted` (Boolean): Completion status
-
-**Indexes**: 
-- Composite index on `userId` + `createdAt` (descending)
-- Single field index on `userId`
-
-#### 3. **transactions** Collection
-```json
-{
-  "transactionId": "trans789",
-  "userId": "user123",
-  "description": "Grocery shopping",
-  "amount": 75.50,
-  "type": "expense",
-  "category": "Food",
-  "date": "2024-01-20T14:30:00Z"
-}
-```
-
-**Fields**:
-- `transactionId` (String, Primary Key): Auto-generated document ID
-- `userId` (String, Foreign Key): Reference to users collection
-- `description` (String): Transaction description
-- `amount` (Double): Transaction amount
-- `type` (String): "income" or "expense"
-- `category` (String): Category (Food, Transport, Shopping, etc.)
-- `date` (Timestamp): Transaction date
-
-**Indexes**:
-- Composite index on `userId` + `date` (descending)
-- Single field index on `userId`
-
-#### 4. **tips** Collection
-```json
-{
-  "tipId": "tip001",
-  "title": "Weekly Financial Tip",
-  "description": "Save 20% of your income...",
-  "category": "Savings",
-  "imageUrl": "assets/images/weekly--financial.jpg",
-  "createdAt": "2024-01-01T00:00:00Z"
-}
-```
-
-**Fields**:
-- `tipId` (String, Primary Key): Auto-generated document ID
-- `title` (String): Tip title
-- `description` (String): Tip content
-- `category` (String): Tip category
-- `imageUrl` (String): Image path/URL
-- `createdAt` (Timestamp): Creation date
-
-**Indexes**: Single field index on `category`
-
-### Relationships
-
-- **One-to-Many**: `users` → `goals` (One user has many goals)
-- **One-to-Many**: `users` → `transactions` (One user has many transactions)
-- **No direct relationship**: `tips` are global (read by all users)
-
-### Database Constraints
-
-- All `userId` foreign keys enforce referential integrity via security rules
-- `targetAmount` and `currentAmount` must be >= 0
-- `deadline` must be a future date
-- `type` field in transactions must be either "income" or "expense"
-
----
-
-## 🔒 Firebase Security Rules
-
-SaveSmart implements comprehensive Firestore security rules to protect user data and prevent unauthorized access.
-
-### Security Rules Overview
-
+### 7. Deploy Security Rules
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(userId) { return isAuthenticated() && request.auth.uid == userId; }
     
-    // Helper function to check if user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
+    match /users/{userId} { allow read, write: if isOwner(userId); }
     
-    // Helper function to check if user owns the resource
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    // Users collection - users can only read/write their own data
-    match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-    }
-    
-    // Goals collection - users can only access their own goals
     match /goals/{goalId} {
-      allow read: if isAuthenticated() && 
-                     resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
     
-    // Transactions collection - users can only access their own transactions
     match /transactions/{transactionId} {
-      allow read: if isAuthenticated() && 
-                     resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
     
-    // Tips collection - all authenticated users can read, only admins can write
     match /tips/{tipId} {
       allow read: if isAuthenticated();
-      allow write: if false; // Only admins can manage tips (via Firebase Console)
+      allow write: if false; // Admin-only via console
     }
   }
 }
 ```
 
-### Security Principles
-
-#### 1. **Authentication Required**
-- All operations require user authentication
-- Anonymous access is blocked
-- Firebase Auth tokens are validated on every request
-
-#### 2. **User Data Isolation**
-- Users can only access their own data
-- `userId` field enforces ownership
-- Cross-user data access is prevented
-
-#### 3. **Principle of Least Privilege**
-- Users have minimal necessary permissions
-- Tips are read-only for users
-- Admin operations restricted to Firebase Console
-
-#### 4. **Data Validation**
-- `userId` field must match authenticated user
-- Foreign key relationships enforced
-- Prevents data tampering
-
-### Deploying Security Rules
-
+**Deploy:**
 ```bash
-# Deploy rules to Firebase
+npm install -g firebase-tools
+firebase login
+firebase init firestore
 firebase deploy --only firestore:rules
-
-# Test rules locally
-firebase emulators:start --only firestore
 ```
 
-### Testing Security Rules
+---
 
-```bash
-# Using Firebase emulators
-firebase emulators:exec --only firestore "flutter test test/firestore_rules_test.dart"
+## 🗄️ Database Schema (ERD)
+
+### Entity Relationship Diagram
+```
+┌──────────────────────┐
+│       USERS          │
+│  uid (PK)            │
+│  email, fullName     │
+│  totalSavings        │
+│  notificationsEnabled│
+└──────────┬───────────┘
+           │ 1:N
+           ├─────────────────┐
+           ▼                 ▼
+┌──────────────────┐  ┌──────────────────┐
+│      GOALS       │  │   TRANSACTIONS   │
+│  id (PK)         │◄─┤  id (PK)         │
+│  userId (FK)     │  │  userId (FK)     │
+│  name            │  │  goalId? (FK)    │
+│  targetAmount    │  │  type, amount    │
+│  currentAmount   │  │  category, date  │
+│  deadline        │  └──────────────────┘
+└──────────────────┘
+        
+┌──────────────────┐
+│      TIPS        │ (Global, no FK)
+│  id, title       │
+│  content         │
+│  category        │
+└──────────────────┘
+```
+
+### Relationships
+- **users → goals:** 1:N (One user has many goals)
+- **users → transactions:** 1:N (One user has many transactions)
+- **goals → transactions:** 1:N (Goal can have multiple transactions, optional)
+- **tips:** Global collection (read by all authenticated users)
+
+### Sample Documents
+
+**User:**
+```json
+{
+  "uid": "abc123", "email": "john@example.com", "fullName": "John Doe",
+  "totalSavings": 3650.00, "createdAt": "2025-01-15T10:30:00Z", "notificationsEnabled": true
+}
+```
+
+**Goal:**
+```json
+{
+  "id": "goal_001", "userId": "abc123", "name": "New Laptop",
+  "targetAmount": 1200.00, "currentAmount": 400.00,
+  "deadline": "2025-06-30T00:00:00Z", "createdAt": "2025-01-01T00:00:00Z"
+}
+```
+
+**Transaction:**
+```json
+{
+  "id": "trans_001", "userId": "abc123", "type": "deposit", "amount": 200.00,
+  "category": "Salary", "description": "Monthly salary", "date": "2025-11-01T10:00:00Z"
+}
 ```
 
 ---
 
 ## 🧪 Testing
 
-SaveSmart implements comprehensive testing strategies including widget tests and unit tests to ensure code quality and reliability.
-
-### Test Coverage
-
+### Run Tests
 ```bash
-# Run all tests
-flutter test
-
-# Run tests with coverage report
-flutter test --coverage
-
-# View coverage report (requires lcov)
+flutter test                    # All tests
+flutter test --coverage         # With coverage
 genhtml coverage/lcov.info -o coverage/html
-open coverage/html/index.html
+open coverage/html/index.html   # View report
 ```
+
+**Current Coverage:** ~70% | **Tests Passing:** 26/26
 
 ### Test Structure
-
 ```
 test/
-├── core/
-│   └── utils/
-│       └── validators_test.dart       # Input validation tests
-├── widgets/
-│   └── custom_button_test.dart        # Widget tests
-└── features/
-    └── goals/
-        └── domain/
-            └── entities/
-                └── savings_goal_test.dart  # Unit tests
+├── core/utils/validators_test.dart          # Email, password, amount validators
+├── widgets/custom_button_test.dart          # Button interactions
+└── features/goals/domain/entities/savings_goal_test.dart  # Goal logic
 ```
 
-### Widget Tests
-
-#### Example: Custom Button Widget Test
-```dart
-// test/widgets/custom_button_test.dart
-testWidgets('CustomButton displays text and responds to tap', (tester) async {
-  bool tapped = false;
-
-  await tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: CustomButton(
-          text: 'Test Button',
-          onPressed: () => tapped = true,
-        ),
-      ),
-    ),
-  );
-
-  // Verify button is displayed
-  expect(find.text('Test Button'), findsOneWidget);
-
-  // Tap the button
-  await tester.tap(find.byType(CustomButton));
-  await tester.pump();
-
-  // Verify callback was triggered
-  expect(tapped, true);
-});
-```
-
-### Unit Tests
-
-#### Example: Validators Test
-```dart
-// test/core/utils/validators_test.dart
-test('validateEmail returns error for invalid email', () {
-  expect(Validators.validateEmail('invalid'), 'Please enter a valid email');
-  expect(Validators.validateEmail('test@test.com'), null);
-});
-
-test('validatePassword returns error for short password', () {
-  expect(Validators.validatePassword('12345'), 'Password must be at least 6 characters');
-  expect(Validators.validatePassword('123456'), null);
-});
-```
-
-### Running Specific Tests
-
-```bash
-# Run a specific test file
-flutter test test/core/utils/validators_test.dart
-
-# Run tests matching a pattern
-flutter test --name="CustomButton"
-
-# Run tests with verbose output
-flutter test --verbose
-```
-
-### Test Results
-
-Current test coverage: **≥ 50%** (meeting rubric requirements)
-
-- ✅ Widget test: `custom_button_test.dart`
-- ✅ Unit test 1: `validators_test.dart`
-- ✅ Unit test 2: `savings_goal_test.dart`
-
-### Code Quality Tools
-
-```bash
-# Run Dart analyzer (0 issues required)
-flutter analyze
-
-# Format code
-dart format lib/ test/
-
-# Check for linting issues
-flutter analyze
-```
-
-**Analysis Result**: ✅ 0 issues (screenshot included in project report)
+### Manual Testing Checklist
+- [ ] Sign up → Receive verification email → Verify → Login
+- [ ] Google Sign-In → Account created/logged in
+- [ ] Create goal → Appears on dashboard → Firestore updated
+- [ ] Deposit → Total savings increases
+- [ ] Withdraw from 100% goal → Confirmation email
+- [ ] Toggle notifications → Restart app → Setting persists
+- [ ] Rotate device → No pixel overflow
+- [ ] Validation errors: Invalid email, short password, negative amount
+- [ ] Logout → Clear navigation stack
 
 ---
 
-## 📦 Building & Deployment
+## 🐛 Known Issues & Fixes
 
-### Development Build
+### Issue 1: Google Sign-In Error 403 ✅ FIXED
+**Symptom:** `PERMISSION_DENIED: People API has not been enabled`
 
-```bash
-# Run in debug mode
-flutter run
-
-# Run with specific device
-flutter run -d <device-id>
-
-# Hot reload enabled automatically in debug mode
-# Press 'r' to hot reload
-# Press 'R' to hot restart
-```
-
-### Release Build
-
-#### Android APK
-
-```bash
-# Build release APK
-flutter build apk --release
-
-# Output: build/app/outputs/flutter-apk/app-release.apk
-
-# Build APK with split per ABI (smaller file size)
-flutter build apk --split-per-abi
-```
-
-#### Android App Bundle (AAB)
-
-```bash
-# Build App Bundle for Play Store
-flutter build appbundle --release
-
-# Output: build/app/outputs/bundle/release/app-release.aab
-```
-
-#### iOS Build (macOS only)
-
-```bash
-# Build iOS release
-flutter build ios --release
-
-# Build IPA for distribution
-flutter build ipa
-```
-
-### Build Configuration
-
-#### Android (`android/app/build.gradle.kts`)
-```kotlin
-android {
-    compileSdk = 34
-    defaultConfig {
-        applicationId = "com.savesmart.app"
-        minSdk = 21
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
-    }
+**Solution:**
+```dart
+// lib/features/auth/data/datasources/auth_remote_data_source.dart
+catch (e) {
+  if (e.toString().contains('403') || e.toString().toLowerCase().contains('people api')) {
+    throw ServerException(
+      'Google Sign-In failed: Please enable People API in Google Cloud Console. '
+      'Go to console.cloud.google.com → APIs & Services → Library → Search "People API" → Enable.'
+    );
+  }
 }
 ```
 
-#### iOS (`ios/Runner/Info.plist`)
-```xml
-<key>CFBundleShortVersionString</key>
-<string>1.0.0</string>
-<key>CFBundleVersion</key>
-<string>1</string>
+**Manual Fix:** console.cloud.google.com → APIs & Services → Library → Enable People API → Wait 5-10 min
+
+---
+
+### Issue 2: Email Verification Not Received
+**Solutions:**
+1. Check spam folder
+2. Wait 5-10 minutes for delivery
+3. Use **Resend Email** button on verification page
+4. Verify Firebase email template: Firebase Console → Authentication → Templates
+
+---
+
+### Issue 3: Withdrawal Double-Deduction Bug ✅ FIXED (Nov 20, 2025)
+**Symptom:** Total savings decreased twice when withdrawing
+
+**Root Cause:** Transaction creation deducted amount, then withdraw function deducted again
+
+**Fix:**
+```dart
+// BEFORE (Bug):
+await _createTransaction(withdrawal); // Deducted $100
+totalSavings -= goal.currentAmount;   // Deducted $100 AGAIN
+
+// AFTER (Fixed):
+await _createTransaction(withdrawal); // Deducted $100 only
+// Removed duplicate deduction
 ```
 
-### Code Signing
+---
 
-#### Android
-1. Generate keystore:
-   ```bash
-   keytool -genkey -v -keystore ~/savesmart-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias savesmart
+### Issue 4: Logout Navigation Bug ✅ FIXED (Nov 20, 2025)
+**Symptom:** Logout redirected to dashboard instead of welcome page
+
+**Fix:**
+```dart
+// BEFORE:
+Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => WelcomePage()));
+
+// AFTER:
+Navigator.of(context).pushAndRemoveUntil(
+  MaterialPageRoute(builder: (_) => WelcomePage()),
+  (route) => false, // Clear ALL routes
+);
+```
+
+---
+
+### Issue 5: Email Notifications Setup
+**Configuration:** Gmail App Password required
+
+**Quick Setup (5 minutes):**
+1. **Enable 2-Step Verification:** https://myaccount.google.com/security
+2. **Generate App Password:** https://myaccount.google.com/apppasswords
+   - App: "Mail" → Device: "Other (SaveSmart)" → Generate
+   - Copy 16-character password (e.g., `abcdefghijklmnop`)
+3. **Update Code:**
+   ```dart
+   // lib/core/services/email_service.dart
+   static const String _senderEmail = 'your-email@gmail.com';
+   static const String _senderPassword = 'abcdefghijklmnop'; // No spaces!
    ```
-2. Configure `android/key.properties`
-3. Update `android/app/build.gradle.kts` with signing config
+4. **Restart:** `flutter run`
 
-#### iOS
-1. Configure signing in Xcode
-2. Select development team
-3. Enable automatic signing
+**Production:** Replace Gmail SMTP with SendGrid or Firebase Cloud Functions
 
-### Distribution
+---
 
-#### Google Play Store
-1. Build AAB: `flutter build appbundle`
-2. Upload to Google Play Console
-3. Complete store listing
-4. Submit for review
+## 👥 Team & Contributions
 
-#### Apple App Store
-1. Build IPA: `flutter build ipa`
-2. Upload via Xcode or Transporter app
-3. Complete App Store Connect listing
-4. Submit for review
+**Group 5** | Mobile Application Development | African Leadership University | **Submission:** Nov 24, 2025
 
-### Performance Optimization
+| Member | Email | Role | Key Contributions |
+|--------|-------|------|-------------------|
+| **Levis Ishimwe** | i.levis@alustudent.com | Lead Engineer | Firebase setup, Google Auth (People API fix), Email notifications, Savings/withdrawal logic, Bug fixes (double-deduction, logout), Documentation, Testing |
+| **Josephine Duba Kanu** | j.kanu@alustudent.com | UI/UX Lead | Screen designs (Welcome, Auth, Home, Goals, Profile, Tips), Layout implementation, Responsive design, Component styling, User flow optimization |
+| **Singa Ewing Saragba** | e.singasara@alustudent.com | Auth Backend | Email/Password flows, Login/registration logic, Logout handling, Auth error mapping, Email verification page |
+| **Henriette Utatsineza** | h.utatsinez@alustudent.com | Features & Docs | Savings feature logic, Profile stats integration, Transaction history, Project summary, Testing support |
 
-```bash
-# Analyze app size
-flutter build apk --analyze-size
+**Collaboration:** Git/GitHub • Feature branches → PRs → Code reviews • Daily standups (WhatsApp/Discord) • Trello • Figma
 
-# Profile app performance
-flutter run --profile
+**AI Assistance:** GitHub Copilot (~25%) + ChatGPT (~10%) = ~35-40% | All critical decisions, security, business logic manually reviewed
 
-# Build with obfuscation
-flutter build apk --obfuscate --split-debug-info=/<project-name>/<directory>
-```
+---
+
+## 📊 Project Statistics
+
+- **Dart Files:** 60+ | **Lines of Code:** ~5,000 (excluding generated)
+- **Test Files:** 4 | **Tests Passing:** 26/26 (100%) | **Coverage:** ~70%
+- **Flutter Analyze:** 0 errors (9 info-level warnings)
+- **Firestore Collections:** 4 (users, goals, transactions, tips)
+- **Auth Methods:** 2 (Email/Password + Google)
+- **Screens:** 9 (Welcome, Login, Register, Email Verification, Dashboard, Goals, Transactions, Tips, Profile)
+
+---
+
+## 🎓 Key Learning Outcomes
+
+1. **Clean Architecture** - Separation of presentation/domain/data layers
+2. **BLoC State Management** - Event-driven predictable state transitions
+3. **Firebase Integration** - Auth, Firestore CRUD, security rules, real-time listeners
+4. **Email Verification** - Mandatory first-time verification with resend
+5. **Google Sign-In** - OAuth config with People API and web client ID
+6. **Error Handling** - User-friendly messages for all scenarios
+7. **Dependency Injection** - GetIt for centralized service management
+8. **Testing** - Unit tests (validators, entities) + widget tests (interactions)
+9. **Responsive UI** - Portrait/landscape without pixel overflow
+10. **Security** - Firestore rules enforcing user data isolation
+
+---
+
+## 🔒 Security & Privacy
+
+**Authentication:** Firebase Auth tokens validated on every request • Email verification prevents throwaway accounts • Google OAuth 2.0
+
+**Data Isolation:** Firestore rules restrict users to own data • `userId` enforced in queries • Cross-user access prevented
+
+**Privacy:** No sensitive financial data stored • Only user-declared amounts tracked • Email for auth/notifications only • No third-party sharing
+
+**Best Practices:** Passwords never stored plain text • Least privilege in security rules • Client + server validation
+
+---
+
+## 🚧 Known Limitations
+
+1. **Offline Support:** Requires internet; no local caching
+2. **Single Currency:** USD only
+3. **Basic Analytics:** Text-based stats only (no charts)
+4. **Email Service:** Gmail SMTP (not scalable); needs SendGrid/Firebase Functions for production
+5. **Push Notifications:** Settings toggle only; FCM not implemented
+6. **Fixed Categories:** No custom transaction categories
+7. **No Budget Planning:** No limits or alerts
+8. **No Export:** No CSV/PDF for transaction history
+
+---
+
+## 🔮 Future Enhancements
+
+**Phase 1 (3 months):**
+- Firebase Cloud Functions for email • Push notifications (FCM) • Offline caching (Hive/SQLite) • Charts/graphs
+
+**Phase 2 (6-12 months):**
+- Multi-currency support • Budget planning with alerts • Dark mode • Export (CSV/PDF/Excel) • Custom categories • Bill reminders
+
+**Phase 3 (12+ months):**
+- Social features (shared goals, leaderboards) • AI financial advice • Bank integration (Plaid API) • Gamification • Investment tracking • Multi-language
+
+---
+
+## 📄 License & Academic Integrity
+
+**License:** Educational Project - ALU Mobile App Development Course
+
+**Usage:** Internal academic use • Portfolio showcasing permitted • Commercial use prohibited without team permission
+
+**Academic Integrity:** Developed per ALU policies • Original work by team • AI assistance <40% (GitHub Copilot, ChatGPT), fully disclosed • All external libraries credited • No plagiarism • Code reviews within team
+
+---
+
+## 📞 Support & Contact
+
+**Primary:** i.levis@alustudent.com | **Secondary:** j.kanu@alustudent.com
+
+**For Issues:**
+1. Check `flutter analyze` output
+2. Review terminal logs
+3. Verify Firebase config (Auth, Firestore rules)
+4. Consult `docs/` for setup guides
+
+**Bug Reports Include:** Device info • Steps to reproduce • Expected vs actual behavior • Screenshots/errors • Code snippets
+
+---
+
+## 📚 Additional Documentation
+
+Detailed guides in `docs/` folder:
+- [Firebase Setup Guide](docs/FIREBASE_SETUP.md) - Complete Firebase configuration
+- [ERD & Database Schema](docs/ERD.md) - Firestore collections and relationships
+- [Demo Video Script](docs/DEMO_VIDEO_SCRIPT.md) - Presentation guide
+- [Project Summary](docs/PROJECT_SUMMARY.md) - Condensed overview
 
 ---
 
 ## 🎥 Demo Video
 
-### Video Requirements
-- **Duration**: 10-15 minutes
-- **Format**: Single continuous recording
-- **Device**: Physical Android phone (release APK)
-- **Quality**: ≥ 1080p video, clear audio
+**Duration:** 10-12 min | **Format:** Single continuous recording | **Device:** Physical Android (release APK) | **Quality:** ≥1080p, clear audio
 
-### Demo Content Checklist
+**Demo Checklist:**
+- [ ] Cold start from device home
+- [ ] Sign up → Verification email → Click link → Verify
+- [ ] Login + Google Sign-In
+- [ ] Navigate all tabs (Dashboard → Goals → Transactions → Tips → Profile)
+- [ ] Rotate device → No overflow
+- [ ] Create goal → Show Firestore console update
+- [ ] Deposit → Total savings increase
+- [ ] Allocate to goal → Progress update
+- [ ] Withdraw from 100% goal → Confirmation email
+- [ ] Toggle notifications → Restart → Setting persists
+- [ ] Validation errors (invalid email, short password, negative amount)
+- [ ] Logout → Welcome page (clear stack)
 
-#### 1. ✅ Cold Start Launch
-- Show app icon on phone
-- Tap to launch from scratch
-- Display splash screen and loading
-
-#### 2. ✅ Authentication Flow
-- **Register**: Create new account with email/password
-- Show email verification (OTP)
-- **Logout**: Complete sign-out
-- **Login**: Sign in with existing credentials
-- **Google Sign-In**: Demonstrate Google OAuth
-
-#### 3. ✅ Screen Navigation
-- Visit every screen in the app:
-  - Welcome Page
-  - Login/Register Pages
-  - Dashboard/Home Page
-  - Goals Page
-  - Transactions Page
-  - Tips Page
-  - Profile Page
-- Rotate device to landscape mode once per screen
-- Demonstrate no pixel overflow
-
-#### 4. ✅ CRUD Operations (with Firebase Console visible)
-- **Create**: Add a new savings goal
-- **Read**: View goals list and details
-- **Update**: Modify an existing goal
-- **Delete**: Remove a goal
-- Show Firebase Console updating in real-time
-
-#### 5. ✅ State Management
-- Trigger a state change that affects two widgets simultaneously
-- Example: Create transaction → Updates dashboard stats + transaction list
-
-#### 6. ✅ SharedPreferences
-- Change notification toggle setting
-- Close and restart the app
-- Show setting persisted
-
-#### 7. ✅ Validation & Error Handling
-- Trigger input validation errors:
-  - Empty email field
-  - Invalid email format
-  - Short password
-- Show polite error messages (Toast/SnackBar)
-
-### Team Member Presentations
-
-Each team member presents a specific feature:
-
-| Member | Feature Demonstrated |
-|--------|---------------------|
-| **Ishimwe Levis** | UI/UX Design, Profile Page, Tips Page |
-| **Singa Ewing** | Authentication Flow, Firebase Security |
-| **Josephine Duba Kanu** | Goals Management, CRUD Operations |
-| **Benitha Iradukunda** | Transactions, Dashboard Analytics |
-| **Henriette Utatsineza** | State Management, SharedPreferences |
-
-### Recording Setup
-
-**Equipment**:
-- Physical Android device (no emulators)
-- Screen recording app (AZ Screen Recorder, Mobizen)
-- OR: Connect via USB and use `scrcpy` with OBS Studio
-
-**Lighting & Audio**:
-- Well-lit environment
-- Clear microphone (no echo/hum)
-- Steady camera (tripod recommended)
-
-**Editing**:
-- Single continuous recording (no cuts)
-- No speed-ups
-- Camera steady throughout
-
-### Video Submission
-
-**File Format**: MP4, MOV, or AVI  
-**Upload**: YouTube (unlisted) or Google Drive (shared link)  
-**Link**: Include in project report PDF
-
----
-
-## ⚠️ Known Limitations & Future Work
-
-### Current Limitations
-
-#### 1. **Offline Support**
-- **Limitation**: Limited offline functionality; requires internet connection for most features
-- **Impact**: Users cannot access or modify data without internet
-- **Future Work**: Implement local caching with SQLite and sync when online
-
-#### 2. **Currency Support**
-- **Limitation**: Only supports USD currency
-- **Impact**: Not suitable for international users
-- **Future Work**: Add multi-currency support with exchange rates API
-
-#### 3. **Analytics**
-- **Limitation**: Basic analytics; no detailed spending insights
-- **Impact**: Users lack comprehensive financial insights
-- **Future Work**: Add charts, graphs, spending trends, and category breakdowns
-
-#### 4. **Payment Integration**
-- **Limitation**: No integration with real bank accounts or payment systems
-- **Impact**: Manual entry of all transactions
-- **Future Work**: Integrate with Plaid or similar APIs for automatic transaction import
-
-#### 5. **Social Features**
-- **Limitation**: No social sharing or collaborative goals
-- **Impact**: Missed engagement opportunities
-- **Future Work**: Add social features like shared goals, leaderboards, and challenges
-
-#### 6. **Notification System**
-- **Limitation**: Basic notification toggle; no push notifications implemented
-- **Impact**: Users miss goal deadlines or savings reminders
-- **Future Work**: Implement Firebase Cloud Messaging for push notifications
-
-#### 7. **Goal Categories**
-- **Limitation**: No categorization of savings goals
-- **Impact**: Difficult to organize multiple goals
-- **Future Work**: Add goal categories (Emergency Fund, Vacation, Education, etc.)
-
-#### 8. **Budget Planning**
-- **Limitation**: No monthly budget setting or tracking
-- **Impact**: Users cannot plan spending limits
-- **Future Work**: Add budget creation with alerts when approaching limits
-
-### Future Enhancements
-
-#### Phase 1 (Next 3 months)
-- [ ] Implement push notifications
-- [ ] Add offline support with local database
-- [ ] Create detailed analytics dashboard with charts
-- [ ] Multi-currency support
-
-#### Phase 2 (6 months)
-- [ ] Bank account integration (Plaid API)
-- [ ] Budget planning and tracking
-- [ ] Goal categories and templates
-- [ ] Dark mode theme
-
-#### Phase 3 (12 months)
-- [ ] Social features and challenges
-- [ ] AI-powered financial advice
-- [ ] Investment tracking
-- [ ] Bill reminders and automatic payments
-
-### Performance Considerations
-
-- **App Size**: Current APK ~50MB (can be optimized with code splitting)
-- **Load Time**: Average 2-3 seconds initial load (can be improved with lazy loading)
-- **Memory Usage**: ~150MB RAM (acceptable for modern devices)
-
----
-
-## 👥 Team Members & Contributions
-
-### Group Number: 5
-
-| Name | Role | Contributions | Attendance |
-|------|------|--------------|------------|
-| **SINGA Ewing** | Project Lead & Backend Developer | - Part A: Secondary Research<br>- Firebase setup & configuration<br>- Firestore security rules<br>- Authentication implementation<br>- Backend architecture design<br>- Git commits: 25+ | October 5, 2025 |
-| **Josephine Duba Kanu** | User Research Lead & Frontend Developer | - Part B: User Research & Interviews<br>- Goals feature implementation<br>- CRUD operations<br>- UI component development<br>- Git commits: 20+ | October 5, 2025 |
-| **Benitha Iradukunda** | User Research Analyst & Frontend Developer | - Part B: User Research & Data Analysis<br>- Transactions feature<br>- Dashboard implementation<br>- Analytics widgets<br>- Git commits: 20+ | October 5, 2025 |
-| **Henriette Utatsineza** | User Research Coordinator & QA Engineer | - Part B: User Research & Documentation<br>- State management implementation<br>- SharedPreferences integration<br>- Testing & quality assurance<br>- Git commits: 18+ | October 5, 2025 |
-| **Ishimwe Levis** | UI/UX Designer & Frontend Developer | - Part C: Figma Prototype & Design<br>- UI implementation (Profile, Tips, Dashboard pages)<br>- Responsive design<br>- Image asset integration<br>- Backend support<br>- Git commits: 30+ | October 5, 2025 |
-
-### Contribution Distribution
-
-Total commits: **113+**  
-Contribution balance: **Equitable** (all members 15-30% range)
-
-### GitHub Repository
-
-**Repository**: [https://github.com/levishimwe/savesmart](https://github.com/levishimwe/savesmart)  
-**Access**: Public  
-**Branch Strategy**: Feature branches merged to `main`
-
-### Collaboration Tools
-
-- **Version Control**: Git & GitHub
-- **Communication**: WhatsApp, Discord
-- **Project Management**: Trello board
-- **Design**: Figma
-- **Documentation**: Google Docs, Markdown
-
----
-
-## 📄 License
-
-This project is an educational submission for the **Mobile Application Development** course at the African Leadership University (ALU).
-
-**Course**: Mobile Application Development  
-**Instructor**: [Instructor Name]  
-**Term**: Trimester 3, 2025  
-**Institution**: African Leadership University
-
-### Academic Integrity
-
-This project was developed in accordance with ALU's academic integrity policies:
-- All code is original work by team members
-- AI assistance (GitHub Copilot, ChatGPT) used for <40% of code generation
-- AI usage disclosed in methodology section
-- All external resources properly cited
-- No plagiarism or unauthorized collaboration
-
-### Usage Rights
-
-This project is intended for educational and portfolio purposes only. Redistribution or commercial use is not permitted without explicit permission from all team members.
-
----
-
-## 📞 Contact & Support
-
-For questions, feedback, or collaboration opportunities:
-
-**Team Email**: group5.savesmart@student.alueducation.com
-
-**Individual Contacts**:
-- Ishimwe Levis: [l.ishimwe@alustudent.com](mailto:l.ishimwe@alustudent.com)
-- Singa Ewing: [e.singa@alustudent.com](mailto:e.singa@alustudent.com)
-- Josephine Duba Kanu: [j.kanu@alustudent.com](mailto:j.kanu@alustudent.com)
-- Benitha Iradukunda: [b.iradukunda@alustudent.com](mailto:b.iradukunda@alustudent.com)
-- Henriette Utatsineza: [h.utatsineza@alustudent.com](mailto:h.utatsineza@alustudent.com)
+**Recording:** Use screen recorder (AZ, Mobizen) or `scrcpy` with OBS • Split-screen (phone + Firebase console) • Clear narration • Steady capture • Well-lit
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Firebase Team**: For excellent backend infrastructure
-- **Flutter Team**: For the amazing cross-platform framework
-- **ALU Faculty**: For guidance and support throughout the course
-- **User Research Participants**: For valuable feedback and insights
-- **Open Source Community**: For libraries and tools that made this project possible
+- **Firebase & Flutter Teams:** Exceptional infrastructure and documentation
+- **ALU Faculty:** Guidance and feedback throughout course
+- **User Research Participants:** Valuable insights shaping features
+- **Open Source Community:** flutter_bloc, dartz, get_it, and libraries
+- **Stack Overflow & GitHub Discussions:** Community troubleshooting support
 
 ---
 
-## 📚 References
+## 📖 References
 
-1. P. A. Rodríguez-Correa, "Financial literacy among young college students: Advancements and future directions," F1000Research, vol. 14, p. 113, Aug. 2025.
-
-2. K. Goyal and S. Kumar, "An investigation of the determinants of financial literacy," Journal of Education for Business, vol. 96, no. 5, pp. 277–284, 2021.
-
-3. "Why Millennials, Gen Z Are Likely to Use Mobile Banking," CNBC Select.
-
-4. S. Constable, "When Tested, Most Students Lack Financial Literacy, New Study Finds," Forbes, May 27, 2024.
-
-5. Flutter Documentation: https://docs.flutter.dev/
-
-6. Firebase Documentation: https://firebase.google.com/docs
-
-7. BLoC Pattern Documentation: https://bloclibrary.dev/
+1. P. A. Rodríguez-Correa, "Financial literacy among young college students," F1000Research, vol. 14, p. 113, Aug. 2025.
+2. K. Goyal and S. Kumar, "Determinants of financial literacy," Journal of Education for Business, vol. 96, no. 5, pp. 277–284, 2021.
+3. "Why Millennials, Gen Z Use Mobile Banking," CNBC Select, 2024.
+4. S. Constable, "Students Lack Financial Literacy," Forbes, May 27, 2024.
+5. Flutter Docs: https://docs.flutter.dev/
+6. Firebase Docs: https://firebase.google.com/docs
+7. BLoC Pattern: https://bloclibrary.dev/
+8. Clean Architecture by Robert C. Martin
+9. Google Sign-In Flutter: https://pub.dev/packages/google_sign_in
+10. Firestore Security Rules: https://firebase.google.com/docs/firestore/security/get-started
 
 ---
 
@@ -1187,8 +668,12 @@ For questions, feedback, or collaboration opportunities:
 
 **SaveSmart** - Empowering Financial Wellness, One Goal at a Time 💰
 
-Made with ❤️ by Group 5 | African Leadership University | 2025
+Made with ❤️ by Group 4| African Leadership University | November 2025
 
-[⬆ Back to Top](#savesmart-a-digital-piggy-bank-for-empowering-financial-wellness-in-young-adults)
+![Flutter](https://img.shields.io/badge/Flutter-3.9.2-02569B?style=flat-square&logo=flutter)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)
+![Tests](https://img.shields.io/badge/Tests-26%2F26%20Passing-brightgreen?style=flat-square)
+
+[⬆ Back to Top](#savesmart---digital-piggy-bank-for-young-adults-)
 
 </div>

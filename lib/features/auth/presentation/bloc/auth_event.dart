@@ -71,3 +71,9 @@ class UpdateProfileEvent extends AuthEvent {
   @override
   List<Object?> get props => [fullName, phoneNumber, photoUrl];
 }
+
+/// Resend verification email
+class ResendVerificationEmailEvent extends AuthEvent {}
+
+/// Check if email has been verified (reload user)
+class CheckEmailVerifiedEvent extends AuthEvent {}

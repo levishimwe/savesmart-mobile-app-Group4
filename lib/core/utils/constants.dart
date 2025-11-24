@@ -43,4 +43,8 @@ class AppConstants {
       'Please check your internet connection.';
   static const String authErrorMessage =
       'Authentication failed. Please try again.';
+
+  // Google Sign-In web client id from Firebase Console -> Authentication -> Sign-in method -> Google
+  static const String googleWebClientId =
+      '267770869749-k5s2kuabt312n5oaftdfcdp365bkrhum.apps.googleusercontent.com';
 }

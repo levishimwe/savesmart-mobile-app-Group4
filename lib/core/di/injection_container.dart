@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart' show kIsWeb; // for web client id usage
+import 'package:savesmart/core/utils/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:savesmart/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:savesmart/features/auth/data/repositories/auth_repository_impl.dart';
@@ -23,7 +25,12 @@ Future<void> initializeDependencies() async {
 
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
-  sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
+  // GoogleSignIn configuration. For web we must provide the clientId explicitly.
+  sl.registerLazySingleton<GoogleSignIn>(
+    () => GoogleSignIn(
+      clientId: kIsWeb ? AppConstants.googleWebClientId : null,
+    ),
+  );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -54,6 +61,7 @@ Future<void> initializeDependencies() async {
       signInWithGoogle: sl(),
       signOut: sl(),
       getCurrentUser: sl(),
+      firebaseAuth: sl(),
     ),
   );
 }

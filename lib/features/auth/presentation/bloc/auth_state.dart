@@ -49,3 +49,13 @@ class AuthError extends AuthState {
   @override
   List<Object> get props => [message];
 }
+
+/// Email verification pending state
+class EmailVerificationPending extends AuthState {
+  final String email;
+
+  const EmailVerificationPending(this.email);
+
+  @override
+  List<Object> get props => [email];
+}

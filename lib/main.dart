@@ -5,6 +5,7 @@ import 'package:savesmart/core/di/injection_container.dart';
 import 'package:savesmart/core/utils/constants.dart';
 import 'package:savesmart/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:savesmart/features/auth/presentation/pages/welcome_page.dart';
+import 'package:savesmart/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:savesmart/features/home/presentation/pages/home_page.dart';
 import 'package:savesmart/firebase_options.dart';
 
@@ -71,6 +72,8 @@ class MyApp extends StatelessWidget {
           builder: (context, state) {
             if (state is Authenticated) {
               return const HomePage();
+            } else if (state is EmailVerificationPending) {
+              return const EmailVerificationPage();
             } else if (state is Unauthenticated) {
               return const WelcomePage();
             } else {

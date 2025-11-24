@@ -1,364 +1,90 @@
-# SaveSmart - Project Implementation Summary
-
-## Overview
-SaveSmart is a fully functional mobile application built with Flutter that empowers young adults with financial wellness tools. The app follows Clean Architecture with BLoC state management and integrates Firebase for backend services.
-
-## ✅ Completed Features
-
-### 1. Authentication (100%)
-- ✅ Email/Password authentication with validation
-- ✅ Google Sign-In integration
-- ✅ Email verification
-- ✅ Password reset functionality
-- ✅ Secure error handling
-- ✅ Auth state persistence
-
-### 2. User Interface (100%)
-- ✅ Welcome/Splash screen
-- ✅ Register page with validation
-- ✅ Login page with Google Sign-In option
-- ✅ Dashboard with savings overview
-- ✅ Goals page with progress tracking
-- ✅ Transactions page with filtering
-- ✅ Financial Tips page
-- ✅ Profile page with stats
-- ✅ Bottom navigation
-- ✅ Responsive layouts (≤5.5" and ≥6.7" screens)
-- ✅ Landscape mode support
-- ✅ Material Design components
-
-### 3. Clean Architecture (100%)
-```
-✅ Presentation Layer
-   - BLoC for state management
-   - Pages and widgets
-   - Form validation
-
-✅ Domain Layer
-   - Entities (User, SavingsGoal, Transaction, FinancialTip)
-   - Repository interfaces
-   - Use cases
-
-✅ Data Layer
-   - Models with JSON/Firestore conversion
-   - Remote data sources (Firebase)
-   - Repository implementations
-```
-
-### 4. State Management (100%)
-- ✅ BLoC pattern implementation
-- ✅ Events and states for auth flow
-- ✅ Proper state transitions
-- ✅ Error state handling
-- ✅ Loading states
-
-### 5. Firebase Integration (100%)
-- ✅ Firebase Core initialized
-- ✅ Authentication configured
-- ✅ Firestore database structure
-- ✅ Security rules implemented
-- ✅ Real-time data sync capability
-
-### 6. Database (100%)
-- ✅ ERD documented (see docs/ERD.md)
-- ✅ 4 Collections: users, goals, transactions, tips
-- ✅ Proper indexing
-- ✅ Foreign key relationships
-- ✅ Data validation
-
-### 7. CRUD Operations (100%)
-**Goals:**
-- ✅ Create goal
-- ✅ Read goals (list and single)
-- ✅ Update goal
-- ✅ Delete goal
-- ✅ Add money to goal
-- ✅ Real-time updates (stream)
-
-**Transactions:**
-- ✅ Create transaction
-- ✅ Read transactions
-- ✅ Update transaction
-- ✅ Delete transaction
-- ✅ Filter by date range
-- ✅ Real-time updates
-
-**Users:**
-- ✅ Create user on signup
-- ✅ Read user profile
-- ✅ Update profile
-- ✅ Auth state tracking
-
-### 8. Testing (100%)
-- ✅ 26 unit tests (all passing)
-- ✅ Widget tests for CustomButton
-- ✅ Entity tests for SavingsGoal
-- ✅ Validator tests (email, password, amount, name)
-- ✅ Test coverage >70%
-
-### 9. Code Quality (100%)
-- ✅ Zero errors from `flutter analyze`
-- ✅ Code formatted with `dart format`
-- ✅ Proper comments and documentation
-- ✅ Reusable widgets
-- ✅ Clear naming conventions
-- ✅ Separation of concerns
-
-### 10. Security (100%)
-- ✅ Firestore security rules
-- ✅ User-specific data access
-- ✅ Authentication required
-- ✅ Input validation
-- ✅ Error message sanitization
-
-### 11. User Preferences (100%)
-- ✅ SharedPreferences setup
-- ✅ Ready for theme persistence
-- ✅ Ready for notification settings
-- ✅ Dependency injection configured
-
-### 12. Documentation (100%)
-- ✅ README with setup instructions
-- ✅ ERD with complete schema
-- ✅ Firestore security rules documented
-- ✅ Code comments
-- ✅ Architecture explanation
-
-## 📊 Project Statistics
-
-- **Total Files**: 60+ Dart files
-- **Lines of Code**: ~5,000+
-- **Test Files**: 4 test files
-- **Tests Passing**: 26/26 (100%)
-- **Flutter Analyze**: 0 errors, 8 info messages (deprecated warnings only)
-- **Architecture Layers**: 3 (Presentation, Domain, Data)
-- **Features**: 7 (Auth, Goals, Transactions, Tips, Profile, Home, Core)
-
-## 🎨 Design Implementation
-
-The app closely matches the Figma prototype with:
-- Green color scheme (#00695C primary)
-- Card-based layouts
-- Progress indicators
-- Icons and illustrations
-- Bottom navigation
-- Material Design principles
-
-## 🔧 Technologies Used
-
-- **Framework**: Flutter 3.9.2
-- **Language**: Dart 3.9.2
-- **State Management**: BLoC + flutter_bloc
-- **Backend**: Firebase (Auth, Firestore)
-- **DI**: GetIt
-- **Functional Programming**: Dartz (Either)
-- **Testing**: flutter_test, mocktail
-- **Local Storage**: SharedPreferences
-
-## 📱 Screens Implemented
-
-1. Welcome Page
-2. Register Page
-3. Login Page
-4. Dashboard/Home Page
-5. Goals Page
-6. Transactions Page
-7. Tips Page
-8. Profile Page
-
-All screens are interconnected with proper navigation.
-
-## 🔐 Firebase Security Rules
-
-```firestore
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can only access their own data
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-    match /goals/{goalId} {
-      allow read, write: if resource.data.userId == request.auth.uid;
-    }
-    
-    match /transactions/{transactionId} {
-      allow read, write: if resource.data.userId == request.auth.uid;
-    }
-    
-    match /tips/{tipId} {
-      allow read: if request.auth != null;
-      allow write: if false; // Admin only
-    }
-  }
-}
-```
-
-## 🧪 Testing Results
-
-```bash
-$ flutter test
-00:06 +26: All tests passed!
-```
-
-**Test Coverage**:
-- Core utilities: 100%
-- Validators: 100%
-- Widgets: 100%
-- Domain entities: 100%
-
-## 📦 Build Status
-
-- ✅ Android APK builds successfully
-- ✅ No build errors
-- ✅ All dependencies resolved
-- ✅ Firebase configured
-
-## 🎯 Requirements Met
-
-### From Rubric:
-
-#### UI Components (5/5 points)
-✅ Wide mix of Flutter widgets  
-✅ Polished layouts on all screen sizes  
-✅ Proper button sizing  
-✅ Good color contrast  
-✅ Material tap targets
-
-#### Design Match & Navigation (10/10 points)
-✅ Screens match design concept  
-✅ Smooth navigation  
-✅ No pixel overflow  
-✅ Works in landscape
-
-#### State Management (5/5 points)
-✅ BLoC pattern used correctly  
-✅ Clean architecture folders  
-✅ Presentation/Domain/Data separation  
-✅ Business logic separated from UI
-
-#### State Management Implementation (10/10 points)
-✅ Excellent BLoC implementation  
-✅ Efficient state management  
-✅ Proper event handling  
-✅ Responsive UI updates
-
-#### Database Design (10/10 points)
-✅ ERD matches Firestore exactly  
-✅ Consistent field names  
-✅ Security rules implemented  
-✅ Proper indexes
-
-#### CRUD Operations (5/5 points)
-✅ All CRUD operations work  
-✅ UI updates instantly  
-✅ Error handling with messages  
-✅ Real-time updates
-
-#### Authentication (5/5 points)
-✅ Email/Password + Google  
-✅ Error messages  
-✅ Input validation  
-✅ Auth state persistence  
-✅ Email verification
-
-#### Testing (5/5 points)
-✅ Widget tests implemented  
-✅ 3+ unit tests  
-✅ Coverage >70%  
-✅ All tests pass
-
-#### User Preferences (5/5 points)
-✅ SharedPreferences integrated  
-✅ Settings framework ready  
-✅ Preferences persist
-
-#### Code Quality (5/5 points)
-✅ Flutter analyze: 0 errors  
-✅ Code formatted  
-✅ Comments present  
-✅ README complete
-
-#### Git Collaboration (10/10 points)
-✅ Project structured properly  
-✅ Clean commits  
-✅ Organized folders  
-✅ Version controlled
-
-#### Report & Documentation (20/20 points)
-✅ README complete  
-✅ ERD documented  
-✅ Citations present  
-✅ Relevant images  
-✅ Architecture explained  
-✅ Setup instructions clear
-
-#### Video Demo (5/5 points)
-- Ready for recording with all features functional
-- All screens navigable
-- CRUD operations demonstrable
-- Authentication flows working
-- Firebase integration visible
-
-**Total: 100/100 points**
-
-## 🚀 How to Run
-
-```bash
-# 1. Clone the repository
 git clone <repo-url>
-cd savesmart
+# SaveSmart – Project Summary (Condensed ~150 lines)
 
-# 2. Install dependencies
-flutter pub get
+1. Overview  
+SaveSmart is a mobile-first Flutter application designed for young adults to build consistent saving habits. It combines savings goal tracking, transaction logging, financial education tips, and verified user authentication. The app emphasizes clarity, simplicity, and incremental progress.
 
-# 3. Run the app
-flutter run
+2. Motivation  
+Many students and early professionals struggle with starting and sustaining savings discipline. SaveSmart reduces friction by: (a) visualizing goal progress, (b) simplifying deposits/withdrawals, (c) educating through curated tips, and (d) reinforcing identity with verified signup.
 
-# 4. Run tests
-flutter test
+3. Target Users  
+Primary: University students / young adults (18–28). Secondary: Early-career professionals seeking lightweight financial tracking.
 
-# 5. Build APK
-flutter build apk --release
-```
+4. High-Level Feature Set  
+- Email/Password signup + mandatory first-time email verification.  
+- Google Sign-In convenience.  
+- Goals CRUD (title, target, dynamic current amount update).  
+- Transaction history (deposit/withdraw).  
+- Savings accumulation + totals shown on profile.  
+- Financial tips (Firestore driven).  
+- Profile analytics: total saved, goals achieved, days saving, notifications toggle.  
+- Logout with stack reset to Welcome.  
 
-## 📝 Known Limitations
+5. Platform & Tech  
+- Flutter (cross-platform UI).  
+- Firebase (Auth, Firestore, Core).  
+- Architecture: Clean (presentation/domain/data separation).  
+- State Management: BLoC (predictable event→state transitions).  
+- Dependency Injection: GetIt.  
 
-1. **Offline Support**: Basic offline capability, requires internet for sync
-2. **Advanced Features**: Some UI elements are placeholders for future implementation
-3. **Gamification**: Framework in place, full implementation in next iteration
-4. **Multi-currency**: Currently USD only
-5. **Advanced Analytics**: Basic stats implemented, charts coming soon
+6. Data Model (Simplified)  
+Users, Goals, Transactions, Tips (collections). Goals reference userId; transactions optionally reference goalId; aggregated stats computed client-side streams.
 
-## 🔮 Future Enhancements
+7. Authentication Flow  
+Signup creates user document, sends verification email, gates UI until verified. Login bypasses verification if already completed. Google Sign-In uses Firebase credential exchange; People API must be enabled for web. Logout clears session and navigates to Welcome.
 
-- Complete gamification (badges, streaks)
-- Advanced analytics charts
-- Budget planning tools
-- Bill reminders
-- Export data functionality
-- Social features
-- Multi-currency support
-- Offline mode with sync
+8. Email Verification Rationale  
+Ensures genuine contact, prevents throwaway accounts, enables future notification features (goal milestone emails). Implemented using FirebaseAuth's verification API.
 
-## ✨ Highlights
+9. Savings & Goal Logic  
+Each transaction updates aggregated totals. Goal achievement threshold: currentAmount >= targetAmount. Profile shows real-time counts and derived metrics (days since creation).
 
-- **Clean Architecture**: Properly implemented with clear separation
-- **BLoC Pattern**: Professional state management
-- **Firebase Integration**: Secure and scalable backend
-- **Testing**: Comprehensive test coverage
-- **Code Quality**: Zero errors, well-formatted
-- **Documentation**: Complete ERD, README, security rules
-- **Security**: Proper authentication and authorization
-- **Responsive**: Works on all screen sizes
+10. Tips Module  
+Provides financial literacy snippets (budgeting, student finance, savings strategies). Lightweight cards with asset images and Firestore-backed content allow easy future expansion.
 
-## 👥 Development Team
+11. State & Reactivity  
+Firestore snapshots power real-time updates for progress, totals, and UI statistics. Auth states include Authenticated, Unauthenticated, Loading, EmailVerificationPending, AuthError.
 
-This project was developed as part of the Mobile Application Development course, demonstrating mastery of Flutter, Firebase, Clean Architecture, and professional development practices.
+12. Validation  
+Client-side checks: email format, password length, non-negative amounts, matching confirm password, withdrawal boundary (not exceeding current saving). Errors surfaced via SnackBars.
 
----
+13. Testing Strategy  
+Unit tests: validators, entities logic. Widget tests: button behavior, loading states. Manual test matrix covers signup, verification, login, Google sign-in, CRUD operations, rotation, error paths. Target coverage ≥50% (achieved).
 
-**Project Status**: ✅ COMPLETE AND READY FOR SUBMISSION
+14. Security Considerations  
+Access restricted to authenticated users' own documents via Firestore rules (conceptually: match /users/{uid} where request.auth.uid == uid; similarly filter goals/transactions by userId). Sensitive operations avoid unauthenticated writes.
 
-All rubric requirements met. App is functional, tested, documented, and ready for demonstration.
+15. Performance  
+Lean queries filtered by userId. Limited payload sizes. Real-time streams instead of polling. Potential future optimization: transaction pagination & caching.
+
+16. UX Principles  
+Consistent palette; clear typography; card grouping; minimal friction for common actions; explicit verification guidance; polite errors.
+
+17. Team Contributions (Attendance 9,13,22 Nov 2025)  
+- Levis: Core setup, Firebase integration, Google Auth, savings & withdrawal logic, goal utilities, debugging, final docs.  
+- Josephine: UI design & build (core screens, styling).  
+- Singa Ewing: Auth backend (Login, Register, Logout flows).  
+- Henriette: Savings logic, initial summary draft, documentation support.  
+
+18. AI Assistance  
+~35–40% scaffolding & wording aided by Copilot + ChatGPT (reviews, refactors). Critical logic and architecture human-driven.
+
+19. Risks & Mitigations  
+- Google sign-in misconfiguration → Added People API guidance.  
+- Email delays → Resend + user messaging.  
+- Data growth → Plan for pagination.  
+
+20. Future Enhancements  
+Push notifications (goal milestones), budgeting categories, transaction export (CSV), dark mode, localization, advanced analytics (monthly trends graph).
+
+21. Educational Impact  
+Promotes financial awareness; integrates learning (tips) with actionable saving; fosters self-efficacy via progress metrics.
+
+22. Ethical & Privacy Notes  
+No external bank data; only user-declared amounts. Email addresses used strictly for auth and potential notifications.
+
+23. Deployment Considerations  
+Current build suitable for classroom/demo. Production needs: stronger validation, monitoring, analytics, privacy policy.
+
+24. Conclusion  
+SaveSmart delivers a cohesive, testable foundation for a youth-focused savings assistant. Balanced practicality (transactions, goals) + motivation (visual progress) + education (tips). Ready for evaluation and iteration.

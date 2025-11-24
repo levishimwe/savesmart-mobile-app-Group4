@@ -39,7 +39,7 @@ class TipsPage extends StatelessWidget {
             'Weekly Financial Tip',
             'Budgeting Basics',
             'Learn how to create and manage an effective budget that helps identify areas where you can save money.',
-            'assets/images/weekly--financial.jpg',
+            'assets/images/weekly--financial.png',
             const Color(0xFF4CAF50), // Green
           ),
           _buildTipCard(
