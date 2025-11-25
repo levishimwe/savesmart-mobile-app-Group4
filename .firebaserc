@@ -10,5 +10,8 @@
         "firebase-debug.*.log"
       ]
     }
-  ]
+  ],
+  "projects": {
+    "default": "flutter-smart-save"
+  }
 }
