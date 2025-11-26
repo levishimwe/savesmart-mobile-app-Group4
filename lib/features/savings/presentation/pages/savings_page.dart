@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:savesmart/core/utils/constants.dart';
 
-/// Savings page - where users deposit/save money
+/// Savings page - where users deposit/save money via MoMo
 class SavingsPage extends StatelessWidget {
   const SavingsPage({super.key});
 
@@ -43,12 +45,14 @@ class SavingsPage extends StatelessWidget {
               stream: uid == null
                   ? null
                   : FirebaseFirestore.instance
-                      .collection(AppConstants.usersCollection)
-                      .doc(uid)
-                      .snapshots(),
+                        .collection(AppConstants.usersCollection)
+                        .doc(uid)
+                        .snapshots(),
               builder: (context, snapshot) {
                 final totalSavings =
-                    (snapshot.data?.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
+                    (snapshot.data?.data()?['totalSavings'] as num?)
+                        ?.toDouble() ??
+                    0;
 
                 return Column(
                   children: [
@@ -85,16 +89,11 @@ class SavingsPage extends StatelessWidget {
               children: [
                 const Text(
                   'Savings History',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: () {
-                    // Could add filter functionality
-                  },
+                  onPressed: () {},
                   icon: const Icon(Icons.filter_list, size: 18),
                   label: const Text('Filter'),
                 ),
@@ -108,9 +107,9 @@ class SavingsPage extends StatelessWidget {
               stream: uid == null
                   ? null
                   : FirebaseFirestore.instance
-                      .collection(AppConstants.savingsCollection)
-                      .where('userId', isEqualTo: uid)
-                      .snapshots(),
+                        .collection(AppConstants.savingsCollection)
+                        .where('userId', isEqualTo: uid)
+                        .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -123,20 +122,27 @@ class SavingsPage extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline,
-                              size: 48, color: Colors.red),
+                          const Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red,
+                          ),
                           const SizedBox(height: 16),
                           const Text(
                             'Failed to load savings',
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             snapshot.error.toString(),
                             textAlign: TextAlign.center,
-                            style:
-                                const TextStyle(fontSize: 12, color: Colors.grey),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -277,6 +283,7 @@ class SavingsPage extends StatelessWidget {
   void _showStartSavingDialog(BuildContext context) {
     final descriptionController = TextEditingController();
     final amountController = TextEditingController();
+    final phoneController = TextEditingController(); // user phone for MoMo
 
     showDialog(
       context: context,
@@ -303,6 +310,15 @@ class SavingsPage extends StatelessWidget {
                   prefixText: '\$',
                 ),
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  hintText: 'e.g., 250788123456',
+                ),
+              ),
             ],
           ),
         ),
@@ -317,22 +333,15 @@ class SavingsPage extends StatelessWidget {
               if (uid == null) return;
 
               final description = descriptionController.text.trim();
-              if (description.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please enter a description'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
+              final phone = phoneController.text.trim();
+              final amount = double.tryParse(amountController.text.trim()) ?? 0;
 
-              final amount =
-                  double.tryParse(amountController.text.trim()) ?? 0;
-              if (amount <= 0) {
+              if (description.isEmpty || phone.isEmpty || amount <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Please enter a valid amount'),
+                    content: Text(
+                      'Please fill in all fields with valid values',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -340,61 +349,82 @@ class SavingsPage extends StatelessWidget {
               }
 
               try {
-                // 1) Add saving document
-                final savingRef = FirebaseFirestore.instance
-                    .collection(AppConstants.savingsCollection)
-                    .doc();
+                // 1) Call backend /pay
+                final response = await http.post(
+                  Uri.parse('https://savesmart-mobile-app-group4.onrender.com'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({
+                    'phone': phone,
+                    'amount': amount,
+                    'description': description,
+                    'userId': uid,
+                  }),
+                );
 
-                await savingRef.set({
-                  'id': savingRef.id,
-                  'userId': uid,
-                  'description': description,
-                  'amount': amount,
-                  'date': FieldValue.serverTimestamp(),
-                });
+                if (response.statusCode == 200) {
+                  final referenceId = jsonDecode(response.body)['referenceId'];
 
-                // 2) Create transaction record for history
-                final txRef = FirebaseFirestore.instance
-                    .collection(AppConstants.transactionsCollection)
-                    .doc();
+                  // 2) Update Firebase after successful payment
+                  final savingRef = FirebaseFirestore.instance
+                      .collection(AppConstants.savingsCollection)
+                      .doc();
 
-                await txRef.set({
-                  'id': txRef.id,
-                  'userId': uid,
-                  'description': description,
-                  'amount': amount,
-                  'type': 'deposit',
-                  'date': FieldValue.serverTimestamp(),
-                });
+                  await savingRef.set({
+                    'id': savingRef.id,
+                    'userId': uid,
+                    'description': description,
+                    'amount': amount,
+                    'date': FieldValue.serverTimestamp(),
+                    'momoReference': referenceId,
+                  });
 
-                // 3) Update user's totalSavings atomically
-                final userRef = FirebaseFirestore.instance
-                    .collection(AppConstants.usersCollection)
-                    .doc(uid);
+                  final txRef = FirebaseFirestore.instance
+                      .collection(AppConstants.transactionsCollection)
+                      .doc();
 
-                await FirebaseFirestore.instance.runTransaction((t) async {
-                  final snap = await t.get(userRef);
-                  final current =
-                      (snap.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
-                  final updated = current + amount;
-                  t.update(userRef, {'totalSavings': updated});
-                });
+                  await txRef.set({
+                    'id': txRef.id,
+                    'userId': uid,
+                    'description': description,
+                    'amount': amount,
+                    'type': 'deposit',
+                    'date': FieldValue.serverTimestamp(),
+                  });
 
-                if (context.mounted) {
+                  final userRef = FirebaseFirestore.instance
+                      .collection(AppConstants.usersCollection)
+                      .doc(uid);
+
+                  await FirebaseFirestore.instance.runTransaction((t) async {
+                    final snap = await t.get(userRef);
+                    final current =
+                        (snap.data()?['totalSavings'] as num?)?.toDouble() ?? 0;
+                    t.update(userRef, {'totalSavings': current + amount});
+                  });
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Payment successful!'),
+                        backgroundColor: AppConstants.successColor,
+                      ),
+                    );
+                    Navigator.pop(context);
+                  }
+                } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Saving added successfully!'),
-                      backgroundColor: AppConstants.successColor,
+                    SnackBar(
+                      content: Text(
+                        'Payment failed: ${response.body.toString()}',
+                      ),
                     ),
                   );
-                  Navigator.pop(context);
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to add saving: $e'),
-                      backgroundColor: Colors.red,
+                      content: Text('Error occurred during payment: $e'),
                     ),
                   );
                 }
@@ -428,13 +458,12 @@ class SavingsPage extends StatelessWidget {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     if (m < 1 || m > 12) return '';
     return months[m - 1];
   }
 
-  /// Show confirmation dialog before deleting saving
   void _showDeleteSavingDialog(
     BuildContext context,
     String savingId,
@@ -449,7 +478,9 @@ class SavingsPage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Are you sure you want to delete this saving from history?'),
+            const Text(
+              'Are you sure you want to delete this saving from history?',
+            ),
             const SizedBox(height: 16),
             Text(
               description,
@@ -476,9 +507,7 @@ class SavingsPage extends StatelessWidget {
             onPressed: () async {
               await _deleteSaving(context, savingId, amount);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -486,7 +515,6 @@ class SavingsPage extends StatelessWidget {
     );
   }
 
-  /// Delete saving (display only - does NOT affect totalSavings)
   Future<void> _deleteSaving(
     BuildContext context,
     String savingId,
@@ -496,8 +524,6 @@ class SavingsPage extends StatelessWidget {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return;
 
-      // Delete the saving from history (display only)
-      // This does NOT affect the user's totalSavings
       await FirebaseFirestore.instance
           .collection(AppConstants.savingsCollection)
           .doc(savingId)
