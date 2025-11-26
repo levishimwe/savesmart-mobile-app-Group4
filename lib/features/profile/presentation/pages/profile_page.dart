@@ -190,9 +190,6 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Settings
-                _buildNotificationTile(),
-                const SizedBox(height: 16),
                 // Logout
                 Card(
                   elevation: 2,
@@ -200,121 +197,22 @@ class ProfilePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: const Icon(
-                      Icons.logout,
-                      color: AppConstants.errorColor,
-                    ),
-                    title: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        color: AppConstants.errorColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    trailing: const Icon(
-                      Icons.chevron_right,
-                      color: AppConstants.errorColor,
-                    ),
-                    onTap: () async {
-                      // Show confirmation dialog
-                      final shouldLogout = await showDialog<bool>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          title: const Text('Logout'),
-                          content: const Text('Are you sure you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext, false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext, true),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppConstants.errorColor,
-                              ),
-                              child: const Text('Logout'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      // If user confirmed, sign out
-                      if (shouldLogout == true && context.mounted) {
-                        context.read<AuthBloc>().add(SignOutEvent());
-                      }
+                    leading: const Icon(Icons.logout, color: Colors.red),
+                    title: const Text('Logout'),
+                    onTap: () {
+                      context.read<AuthBloc>().add(SignOutEvent());
                     },
                   ),
                 ),
               ],
             );
           },
-        ),
-      );
-  }
-
-  Widget _buildNotificationTile() {
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseAuth.instance.currentUser?.uid == null
-          ? null
-          : FirebaseFirestore.instance
-              .collection(AppConstants.usersCollection)
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .snapshots(),
-      builder: (context, snapshot) {
-        final notificationsEnabled = snapshot.data?.data()?['notificationsEnabled'] as bool? ?? true;
-        
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: const Icon(Icons.notifications_outlined, color: AppConstants.primaryGreen),
-            title: const Text(
-              'Notification',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
-              ),
-            ),
-            trailing: Switch(
-              value: notificationsEnabled,
-              activeColor: AppConstants.primaryGreen,
-              onChanged: (value) async {
-                final uid = FirebaseAuth.instance.currentUser?.uid;
-                if (uid != null) {
-                  await FirebaseFirestore.instance
-                      .collection(AppConstants.usersCollection)
-                      .doc(uid)
-                      .update({'notificationsEnabled': value});
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          value 
-                              ? 'Notifications enabled' 
-                              : 'Notifications disabled',
-                        ),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: AppConstants.primaryGreen,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-          ),
-        );
-      },
-    );
+        ));
   }
 
   Widget _buildStatRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -330,12 +228,11 @@ class ProfilePage extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Colors.black87,
+              color: AppConstants.primaryGreen,
             ),
           ),
         ],
       ),
     );
   }
-  
 }
