@@ -151,7 +151,8 @@ class GoalsPage extends StatelessWidget {
     // Education
     if (name.contains('school') || name.contains('university') || name.contains('college') ||
         name.contains('tuition') || name.contains('education') || name.contains('study') ||
-        name.contains('master') || name.contains('degree') || name.contains('course')) {
+        name.contains('master') || name.contains('degree') || name.contains('course') ||
+        name.contains('book') || name.contains('books') || name.contains('textbook')) {
       return {'icon': Icons.school, 'color': Colors.indigo};
     }
     
@@ -190,8 +191,9 @@ class GoalsPage extends StatelessWidget {
     }
     
     // Clothing/Fashion
-    if (name.contains('clothes') || name.contains('shoes') || name.contains('fashion') ||
-        name.contains('dress') || name.contains('suit')) {
+    if (name.contains('clothes') || name.contains('clothing') || name.contains('shoes') || 
+        name.contains('shoe') || name.contains('sneakers') || name.contains('boots') ||
+        name.contains('fashion') || name.contains('dress') || name.contains('suit')) {
       return {'icon': Icons.shopping_bag, 'color': Colors.purple};
     }
     

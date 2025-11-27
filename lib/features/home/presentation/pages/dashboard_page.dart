@@ -128,8 +128,6 @@ class DashboardPage extends StatelessWidget {
                                 ),
                               );
                             }
-                            const icons = [Icons.laptop, Icons.favorite, Icons.home, Icons.flight, Icons.school];
-                            const colors = [Colors.blue, Colors.red, Colors.green, Colors.orange, Colors.purple];
                             return Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: List.generate(topGoals.length, (index) {
@@ -138,11 +136,17 @@ class DashboardPage extends StatelessWidget {
                                 final current = (data['currentAmount'] as num?)?.toDouble() ?? 0;
                                 final target = (data['targetAmount'] as num?)?.toDouble() ?? 0;
                                 final progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
+                                
+                                // Smart icon/color selection based on goal name
+                                final iconData = _getIconForGoal(name);
+                                final icon = iconData['icon'] as IconData;
+                                final color = iconData['color'] as Color;
+                                
                                 return _buildGoalCircle(
                                   name,
                                   '\$${target.toStringAsFixed(0)}',
-                                  icons[index % icons.length],
-                                  colors[index % colors.length],
+                                  icon,
+                                  color,
                                   progress,
                                 );
                               }),
@@ -207,6 +211,81 @@ class DashboardPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Smart icon and color selection based on goal name
+  Map<String, dynamic> _getIconForGoal(String goalName) {
+    final name = goalName.toLowerCase();
+    
+    // Medical/Health
+    if (name.contains('surgery') || name.contains('medical') || name.contains('health') || 
+        name.contains('hospital') || name.contains('doctor')) {
+      return {'icon': Icons.medical_services, 'color': Colors.red};
+    }
+    
+    // Technology
+    if (name.contains('laptop') || name.contains('computer') || name.contains('pc') || 
+        name.contains('phone') || name.contains('iphone') || name.contains('ipad') ||
+        name.contains('tablet') || name.contains('macbook')) {
+      return {'icon': Icons.laptop_mac, 'color': Colors.blue};
+    }
+    
+    // Education/Books
+    if (name.contains('school') || name.contains('university') || name.contains('college') ||
+        name.contains('tuition') || name.contains('education') || name.contains('study') ||
+        name.contains('master') || name.contains('degree') || name.contains('course') ||
+        name.contains('book') || name.contains('books') || name.contains('textbook')) {
+      return {'icon': Icons.school, 'color': Colors.indigo};
+    }
+    
+    // Travel/Vacation
+    if (name.contains('vacation') || name.contains('travel') || name.contains('trip') ||
+        name.contains('holiday') || name.contains('flight') || name.contains('tour')) {
+      return {'icon': Icons.flight, 'color': Colors.orange};
+    }
+    
+    // Car/Vehicle
+    if (name.contains('car') || name.contains('vehicle') || name.contains('motorcycle') ||
+        name.contains('bike') || name.contains('auto')) {
+      return {'icon': Icons.directions_car, 'color': Colors.teal};
+    }
+    
+    // House/Home
+    if (name.contains('house') || name.contains('home') || name.contains('apartment') ||
+        name.contains('rent') || name.contains('mortgage')) {
+      return {'icon': Icons.home, 'color': Colors.green};
+    }
+    
+    // Wedding
+    if (name.contains('wedding') || name.contains('marriage') || name.contains('engagement')) {
+      return {'icon': Icons.favorite, 'color': Colors.pink};
+    }
+    
+    // Emergency/Safety
+    if (name.contains('emergency') || name.contains('fund') || name.contains('safety') ||
+        name.contains('insurance')) {
+      return {'icon': Icons.shield, 'color': Colors.amber};
+    }
+    
+    // Business
+    if (name.contains('business') || name.contains('startup') || name.contains('investment')) {
+      return {'icon': Icons.business_center, 'color': Colors.deepPurple};
+    }
+    
+    // Clothing/Fashion/Shoes
+    if (name.contains('clothes') || name.contains('clothing') || name.contains('shoes') || 
+        name.contains('shoe') || name.contains('sneakers') || name.contains('boots') ||
+        name.contains('fashion') || name.contains('dress') || name.contains('suit')) {
+      return {'icon': Icons.shopping_bag, 'color': Colors.purple};
+    }
+    
+    // Baby/Family
+    if (name.contains('baby') || name.contains('child') || name.contains('family')) {
+      return {'icon': Icons.child_care, 'color': Colors.cyan};
+    }
+    
+    // Default
+    return {'icon': Icons.savings, 'color': Colors.blue};
   }
 
   Widget _buildGoalCircle(
