@@ -12,7 +12,12 @@
           "package_name": "com.example.savesmart"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "267770869749-k5s2kuabt312n5oaftdfcdp365bkrhum.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDYRzSXIH2ndSdEqRCp6_MfiPRS0tM0Od4"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "267770869749-k5s2kuabt312n5oaftdfcdp365bkrhum.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "267770869749-uoe2bu2p8fsi0lm8sg9qimqd787iqm2f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.savesmart"
+              }
+            }
+          ]
         }
       }
     }

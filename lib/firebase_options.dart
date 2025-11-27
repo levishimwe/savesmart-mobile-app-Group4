@@ -64,6 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '267770869749',
     projectId: 'flutter-smart-save',
     storageBucket: 'flutter-smart-save.firebasestorage.app',
+    iosClientId: '267770869749-uoe2bu2p8fsi0lm8sg9qimqd787iqm2f.apps.googleusercontent.com',
     iosBundleId: 'com.example.savesmart',
   );
 
@@ -73,6 +74,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '267770869749',
     projectId: 'flutter-smart-save',
     storageBucket: 'flutter-smart-save.firebasestorage.app',
+    iosClientId: '267770869749-uoe2bu2p8fsi0lm8sg9qimqd787iqm2f.apps.googleusercontent.com',
     iosBundleId: 'com.example.savesmart',
   );
 
@@ -85,4 +87,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'flutter-smart-save.firebasestorage.app',
     measurementId: 'G-L3QF7JS2ZD',
   );
+
 }
